@@ -4,11 +4,11 @@ export interface ParseOptions {
 	on_exit:	() => void,
 }
 
-const C_QUOTE  = '"'.charCodeAt(0),
-      C_BOPEN  = '{'.charCodeAt(0),
-      C_BCLOSE = '}'.charCodeAt(0),
-      C_ESCAPE = '\\'.charCodeAt(0),
-	  C_LN     = '\n'.charCodeAt(0);
+const C_QUOTE  = 34,	// "
+      C_BOPEN  = 123,	// {
+      C_BCLOSE = 125,	// }
+      C_ESCAPE = 92,	// \
+	  C_LN     = 10;	// \n
 
 function is_plain( code: number ) {
 	return (
