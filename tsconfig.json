@@ -1,0 +1,11 @@
+{
+	"compilerOptions": {
+		"module": "ESNext",
+		"target": "ESNext",
+		"rootDir": "src",
+		"outDir": "dist",
+		"lib": [ "DOM", "ES2020" ],
+		"declaration": true
+	},
+	"include": [ "src/**/*" ]
+}

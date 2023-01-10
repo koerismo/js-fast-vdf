@@ -1,0 +1,17 @@
+{
+  "name": "js-fast-vdf",
+  "description": "Your average Javascript KeyValues processing library, but fast!",
+  "version": "1.0.0",
+
+  "license": "ISC",
+  "author": "Koerismo",
+
+  "type": "module",
+
+  "main": "index.js",
+  "files": [ "dist/**" ],
+
+  "scripts": {
+    "build": "tsc"
+  }
+}
