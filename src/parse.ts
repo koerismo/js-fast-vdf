@@ -1,19 +1,21 @@
 import { parse as cparse, ParseOptions } from './parsecore.js';
+import { KeyValue, KeyValueRoot, KeyValueSet } from './datatype.js';
 
-export function fancy( data:string ): Object {
-	let out = { length: 0, _:null };
+export function fancy( data:string ): KeyValueRoot {
+	let out: KeyValueSet|KeyValueRoot = new KeyValueRoot();
 
 	cparse( data, {
 		on_enter(key) {
-			out = out[key] = out[out.length] = { key, length: 0, _: out };
-			out.length++;
+			const child = new KeyValueSet( key );
+			out.add( child );
+			out = child;
 		},
 		on_exit() {
-			out = out._;
+			if ( !out.parent ) throw( 'Attempted to exit past root keyvalue!' );
+			out = out.parent;
 		},
 		on_key(key, value, query) {
-			out[key] = out[out.length] = { key, value, query };
-			out.length++;
+			out.add(new KeyValue( key, value, query ));
 		},
 	});
 
