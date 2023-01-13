@@ -22,18 +22,25 @@ export function fancy( data:string ): KeyValueRoot {
 
 export function fast( data:string ) {
 	let out = { length: 0, _:null };
+	let ind = 0;
 
 	cparse( data, {
 		on_enter(key) {
-			out = out[out.length++] = { key, length: 0, _: out };
+			out.length = ind;
+			out = out[ind] = { key, length: 0, _: out };
+			ind = 0;
 		},
 		on_exit() {
+			out.length = ind;
 			out = out._;
+			ind = out.length;
 		},
 		on_key(key, value, query) {
-			out[out.length++] = { key, value, query };
+			ind++;
+			out[ind] = { key, value, query };
 		},
 	});
 
+	out.length = ind;
 	return out;
 }
