@@ -46,6 +46,9 @@ export function parse( text:string, options:ParseOptions ) {
 
 		// End bracket
 		if ( c === C_BCLOSE && !escaped ) {
+			if ( key !== null && value === null ) throw( 'Encountered unpaired key!' );
+			else if ( value !== null ) options.on_key( key, value );
+			key = value = null;
 			options.on_exit();
 			continue;
 		}
@@ -117,7 +120,7 @@ export function parse( text:string, options:ParseOptions ) {
 		}
 	}
 
-	if ( key !== null && value !== null ) options.on_key( key, value );
-	else if ( key !== null ) throw( 'Encountered unpaired key!' );
+	if ( key !== null && value === null ) throw( 'Encountered unpaired key!' );
+	else if ( value !== null ) options.on_key( key, value );
 	return;
 }
