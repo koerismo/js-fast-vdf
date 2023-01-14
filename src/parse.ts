@@ -1,5 +1,5 @@
 import { parse as cparse } from './parsecore.js';
-import { KeyValue, KeyValueRoot, KeyValueSet } from './datatype.js';
+import { KeyValue, KeyValueRoot, KeyValueSet, FastRoot, FastSet } from './types';
 
 export function fancy( data:string ): KeyValueRoot {
 	let out: KeyValueSet|KeyValueRoot = new KeyValueRoot();
@@ -20,8 +20,8 @@ export function fancy( data:string ): KeyValueRoot {
 	return out;
 }
 
-export function fast( data:string ) {
-	let out = { length: 0, _:null };
+export function fast( data:string ): FastRoot {
+	let out: FastRoot|FastSet = { length: 0, _:null };
 	let ind = 0;
 
 	cparse( data, {
@@ -42,5 +42,5 @@ export function fast( data:string ) {
 	});
 
 	out.length = ind;
-	return out;
+	return out as FastRoot;
 }

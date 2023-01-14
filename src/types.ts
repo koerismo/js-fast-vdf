@@ -82,3 +82,25 @@ export class KeyValue {
 	}
 
 }
+
+
+export type FastSet = {
+	key: string,
+	length: number,
+	_: FastSet|FastRoot,
+	[index: number]: FastKey|FastSet,
+}
+
+
+export type FastRoot = {
+	length: number,
+	_: null,
+	[index: number]: FastKey|FastSet,
+}
+
+
+export type FastKey = {
+	key: string,
+	value: string,
+	query?: string,
+}
