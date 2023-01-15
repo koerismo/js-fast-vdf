@@ -4,17 +4,25 @@ export type KeyValueChild = KeyValue|KeyValueSet;
 class KeyValueSetCommon {
 
 	// [key: string]: KeyValueChild;
-	values:		Array<KeyValueChild>;
+	#values:	Array<KeyValueChild>;
+	#map:		{[key:string]: KeyValueChild};
 	parent:		KeyValueSetCommon|null = null;
 
 	constructor( values?: KeyValueChild[] ) {
-		this.values = values||[];
+		this.#values = values||[];
 	}
 
-	/** Returns an array of children with matching keys. */
-	get( key: string ): KeyValueChild[] {
+	/** Returns a single key. */
+	get( key: string ): KeyValueChild|undefined {
+		return this.#map[key];
+	}
+
+	/** Returns an array of children with matching keys, or all children if no key is provided. */
+	all( key?: string ): KeyValueChild[] {
+		if ( key == undefined ) return this.#values;
+
 		const out = [];
-		for ( let child of this.values ) {
+		for ( let child of this.#values ) {
 			if ( child.key === key ) out.push( child );
 		}
 		return out;
@@ -25,26 +33,26 @@ class KeyValueSetCommon {
 		if (!(kv.key in this)) return false;
 
 		// Adapted from https://stackoverflow.com/a/54270177
-		this.values[this.values.indexOf(kv)] = this.values[this.values.length-1];
-		this.values.pop();
+		this.#values[this.#values.indexOf(kv)] = this.#values[this.#values.length-1];
+		this.#values.pop();
 
 		let i: number;
-		for ( i=this.values.length-1; i>-1; i-- ) {
-			if ( this.values[i].key === kv.key ) {
-				this[kv.key] = this.values[i];
+		for ( i=this.#values.length-1; i>-1; i-- ) {
+			if ( this.#values[i].key === kv.key ) {
+				this.#map[kv.key] = this.#values[i];
 				break;
 			};
 		}
 
-		if ( i === -1 ) delete this[kv.key];
+		if ( i === -1 ) delete this.#map[kv.key];
 		return true;
 	}
 
 	/** Adds a child to this set. */
 	add( kv: KeyValueChild ): KeyValueChild {
 		kv.parent = this;
-		this[kv.key] = kv;
-		this.values.push( kv );
+		this.#map[kv.key] = kv;
+		this.#values.push( kv );
 		return kv;
 	}
 }
