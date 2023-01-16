@@ -1,46 +1,44 @@
 import { parse as cparse } from './parsecore.js';
-import { KeyValue, KeyValueRoot, KeyValueSet, FastRoot, FastSet } from './types';
+import {
+	KeyV,  type KeyVChild,  KeyVRoot,  KeyVSet,
+	FastV, type FastVChild, FastVSet } from './types.js';
 
-export function fancy( data:string ): KeyValueRoot {
-	let out: KeyValueSet|KeyValueRoot = new KeyValueRoot();
+/** Parses fast and creates structures that are efficient to manipulate. Useful for small but complex data! */
+export function fancy( data:string ): KeyVRoot {
+	let out: KeyVSet|KeyVRoot = new KeyVRoot();
 
 	cparse( data, {
 		on_enter(key) {
-			out.add(out = new KeyValueSet( key ));
+			out.add(out = new KeyVSet( key ));
 		},
 		on_exit() {
 			if ( !out.parent ) throw( 'Attempted to exit past root keyvalue!' );
 			out = out.parent;
 		},
 		on_key(key, value, query) {
-			out.add(new KeyValue( key, value, query ));
+			out.add(new KeyV( key, value, query ));
 		},
 	});
 
 	return out;
 }
 
-export function fast( data:string ): FastRoot {
-	let out: FastRoot|FastSet = { length: 0, _:null };
-	let ind = 0;
+/** Parses faster, but creates structures that are less efficient to manipulate. Useful for iterating over large amounts of data! */
+export function fast( data:string ): FastVSet {
+	let out = new FastVSet();
 
 	cparse( data, {
 		on_enter(key) {
-			out.length = ind;
-			out = out[ind] = { key, length: 0, _: out };
-			ind = 0;
+			out = out[out.length] = new FastVSet( out, key );
 		},
 		on_exit() {
-			out.length = ind;
-			out = out._;
-			ind = out.length;
+			out = out.parent;
+			out.length++;
 		},
 		on_key(key, value, query) {
-			ind++;
-			out[ind] = { key, value, query };
+			out[out.length++] = { key, value, query };
 		},
 	});
 
-	out.length = ind;
-	return out as FastRoot;
+	return out;
 }
