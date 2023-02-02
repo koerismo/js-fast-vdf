@@ -40,3 +40,23 @@ export function json( data:string, env:Object={} ): Object {
 
 	return out;
 }
+
+/** Parses data into an object without regard for overlap. Useful for parsing simple configurations. */
+export function json( data:string, env:Object={} ): Object {
+	let out = { __parent__: null };
+
+	cparse( data, {
+		on_enter(key) {
+			out = out[key] = { __parent__: out };
+		},
+		on_exit() {
+			out = out.__parent__;
+		},
+		on_key(key, value, query) {
+			if ((query in env) && !env[query]) return;
+			out[key] = value;
+		},
+	});
+
+	return out;
+}
