@@ -55,12 +55,33 @@ The internal API used by the parse.xyz functions.
 >
 > `options` The parser configuration.
 
+### core.**comparse**(text: string, options: ComParseOptions): void
+The internal API used by the parse.xyz functions.
+
+> **Parameters**
+>
+> `text` The string to parse.
+>
+> `options` The parser configuration.
+> > `on_key` Fires when a new keyset begins. This function is expected to return the number of value tokens to follow it.
+> >
+> > `on_value` Fires when a value token is consumed.
+
+
 ## Types
 
 ### ParseOptions
 ```ts
 interface ParseOptions {
     on_key:   (key: string, value: string, query?: string) => void;
+    on_enter: (key: string) => void;
+    on_exit:  () => void;
+}
+
+### ComParseOptions
+```ts
+interface ParseOptions {
+    on_key:   (key: string) => number;
     on_enter: (key: string) => void;
     on_exit:  () => void;
 }
