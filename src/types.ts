@@ -36,7 +36,7 @@ class KeyVSetCommon {
 
 	/** Deletes a child object if the key is matched. Returns true if a child was deleted. Warning: This method may affect the order of keys! */
 	delete( kv: KeyVChild ): boolean {
-		if (!(kv.key in this)) return false;
+		if (!(kv.key in this.#map)) return false;
 
 		// Adapted from https://stackoverflow.com/a/54270177
 		this.#values[this.#values.indexOf(kv)] = this.#values[this.#values.length-1];
