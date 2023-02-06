@@ -9,7 +9,7 @@ class KeyVSetCommon {
 	any( key: string ): KeyVChild
 	any( key: string, strict: true ): KeyVChild;
 	any( key: string, strict: false|boolean ): KeyVChild|null;
-	any( key: string, strict: boolean=true ) {
+	any( key: string, strict: boolean=true ): KeyVChild {
 		let i: number;
 		for ( i=this.#values.length-1; i>-1; i-- ) {
 			const child = this.#values[i];
@@ -20,10 +20,10 @@ class KeyVSetCommon {
 		return null;
 	}
 
-	dir( key: string ): KeyVSet|never;
-	dir( key: string, strict: true ): KeyVSet|never;
+	dir( key: string ): KeyVSet;
+	dir( key: string, strict: true ): KeyVSet;
 	dir( key: string, strict: false|boolean ): KeyVSet|null;
-	dir( key: string, strict: boolean=true ) {
+	dir( key: string, strict: boolean=true ): KeyVSet {
 		let i: number;
 		for ( i=this.#values.length-1; i>-1; i-- ) {
 			const child = this.#values[i];
@@ -34,10 +34,10 @@ class KeyVSetCommon {
 		return null;
 	}
 
-	pair( key: string ): KeyV|never;
-	pair( key: string, strict: true ): KeyV|never;
+	pair( key: string ): KeyV;
+	pair( key: string, strict: true ): KeyV;
 	pair( key: string, strict: false|boolean ): KeyV|null;
-	pair( key: string, strict: boolean=true ) {
+	pair( key: string, strict: boolean=true ): KeyV {
 		let i: number;
 		for ( i=this.#values.length-1; i>-1; i-- ) {
 			const child = this.#values[i];
@@ -48,10 +48,10 @@ class KeyVSetCommon {
 		return null;
 	}
 
-	value( key: string ): string|never;
-	value( key: string, strict: true ): string|never;
+	value( key: string ): string;
+	value( key: string, strict: true ): string;
 	value( key: string, strict: false|boolean ): string|null;
-	value( key: string, strict: boolean=true ) {
+	value( key: string, strict: boolean=true ): string {
 		return this.pair( key, strict )?.value;
 	}
 
