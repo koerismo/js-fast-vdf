@@ -1,4 +1,4 @@
-import { parse as cparse } from './parsecore.js';
+import { parse as cparse } from './core.js';
 import { KeyV,  KeyVRoot,  KeyVSet  } from './types.js';
 
 /** Parses data into a tree of objects. */

@@ -108,7 +108,7 @@ export function parse( text:string, options:ParseOptions ) {
 			else if ( value === null )	value = chunk;
 			else {
 				if ( data[start] === 91 && data[i-1] === 93 ) {
-					options.on_key( key, value, chunk );
+					options.on_key( key, value, text.slice(start+1, i-1) );
 					key = null;
 				}
 				else {
