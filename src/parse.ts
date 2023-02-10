@@ -1,8 +1,8 @@
 import { parse as cparse } from './parsecore.js';
 import { KeyV,  KeyVRoot,  KeyVSet  } from './types.js';
 
-/** Parses fast and creates structures that are efficient to manipulate. Useful for small but complex data! */
-export function fancy( data:string ): KeyVRoot {
+/** Parses data into a tree of objects. */
+export function parse( data:string ): KeyVRoot {
 	let out: KeyVSet|KeyVRoot = new KeyVRoot();
 
 	cparse( data, {
@@ -21,7 +21,7 @@ export function fancy( data:string ): KeyVRoot {
 	return out;
 }
 
-/** Parses data into an object without regard for overlap. Useful for parsing simple configurations. */
+/** Parses data into a regular javascript object. */
 export function json( data:string, env:Object={} ): Object {
 	let out = { __parent__: null };
 
