@@ -4,15 +4,15 @@ Your average Javascript KeyValues processing library, but fast!
 # API
 
 ## Functions
-### parse.**fast**(data: string): Object
-Parses the data into an object with index keys and a `length` value.
+### parse.**parse**(data: string): KeyVRoot
+Parses data into a tree of objects.
 
 > **Parameters**
 >
 > `data` The string to parse.
 
-### parse.**fancy**(data: string): Object
-Parses the data into an object with index keys and a `length` value, and creates named shortcut keys.
+### parse.**json**(data: string): Object
+Parses data into a regular javascript object.
 
 > **Parameters**
 >
