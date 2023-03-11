@@ -84,8 +84,11 @@ class KeyVSetCommon {
 		this.#values.push( kv );
 		return this;
 	}
-}
 
+	factory() {
+		return new KeyVFactory(this);
+	}
+}
 
 export class KeyVSet extends KeyVSetCommon {
 
@@ -115,4 +118,50 @@ export class KeyV {
 		this.parent	= null;
 	}
 
+}
+
+
+/** A class for KeyVSetCommon quick tree creation. */
+class KeyVFactory {
+	source: KeyVSetCommon;
+
+	constructor(source: KeyVSetCommon) {
+		this.source = source;
+	}
+
+	/** Creates a new directory. */
+	dir( key: string ): ThisType<KeyVFactory>;
+	dir( key: string, strict: true ): ThisType<KeyVFactory>;
+	dir( key: string, strict: false|boolean ): ThisType<KeyVFactory>;
+	dir( key: string, strict: boolean=false ): ThisType<KeyVFactory> {
+		let element = this.source.dir(key, false);
+		if (element && strict) throw(`Subset with key "${key}" already exists in set. Operating on existing sets is invalid in strict mode!`);
+		if (!element) {
+			element = new KeyVSet(key);
+			this.source.add(element);
+		}
+
+		this.source = element;
+		return this;
+	}
+
+	/** Creates a new pair. */
+	pair( key: string, value: string, query: string|null=null ): ThisType<KeyVFactory> {
+		this.source.add(new KeyV(key, value, query));
+		return this;
+	}
+
+	/** Goes back the specified number of levels. */
+	back( levels: number=1 ): ThisType<KeyVFactory> {
+		for ( let i=0; i<levels; i++ ) {
+			if (this.source.parent === null) throw('Attempted to navigate backwards past root set!');
+			this.source = this.source.parent;
+		};
+		return this;
+	}
+
+	/** Exits the factory. */
+	exit(): KeyVSetCommon {
+		return this.source;
+	}
 }
