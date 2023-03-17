@@ -6,6 +6,7 @@ class KeyVSetCommon {
 	#values:	Array<KeyVChild> = [];
 	parent:		KeyVSetCommon|null = null;
 
+	/** Retrieves any child of this set with a matching key. This function throws an error when no child is found unless strict mode is explicitly disabled. */
 	any( key: string ): KeyVChild
 	any( key: string, strict: true ): KeyVChild;
 	any( key: string, strict: false|boolean ): KeyVChild|null;
@@ -20,6 +21,7 @@ class KeyVSetCommon {
 		return null;
 	}
 
+	/** Retrieves a set within this set. This function throws an error when no set is found unless strict mode is explicitly disabled. */
 	dir( key: string ): KeyVSet;
 	dir( key: string, strict: true ): KeyVSet;
 	dir( key: string, strict: false|boolean ): KeyVSet|null;
@@ -34,6 +36,7 @@ class KeyVSetCommon {
 		return null;
 	}
 
+	/** Retrieves a pair within this set. This function throws an error when no pair is found unless strict mode is explicitly disabled. */
 	pair( key: string ): KeyV;
 	pair( key: string, strict: true ): KeyV;
 	pair( key: string, strict: false|boolean ): KeyV|null;
@@ -48,6 +51,7 @@ class KeyVSetCommon {
 		return null;
 	}
 
+	/** Retrieves the value of a pair within this set. This function throws an error when no pair is found unless strict mode is explicitly disabled. */
 	value( key: string ): string;
 	value( key: string, strict: true ): string;
 	value( key: string, strict: false|boolean ): string|null;
@@ -55,7 +59,7 @@ class KeyVSetCommon {
 		return this.pair( key, strict )?.value;
 	}
 
-	/** Returns an array of children with matching keys, or all children if no key is provided. */
+	/** Returns an array of all children within this set with matching keys, or all children if no key is provided. */
 	all( key?: string ): KeyVChild[] {
 		if ( key == undefined ) return this.#values;
 
@@ -85,6 +89,7 @@ class KeyVSetCommon {
 		return this;
 	}
 
+	/** Creates a new factory object from this set for creating elements quickly. */
 	factory() {
 		return new KeyVFactory(this);
 	}
@@ -129,7 +134,7 @@ class KeyVFactory {
 		this.source = source;
 	}
 
-	/** Creates a new directory. */
+	/** Creates to a new directory and moves into it. */
 	dir( key: string ): ThisType<KeyVFactory>;
 	dir( key: string, strict: true ): ThisType<KeyVFactory>;
 	dir( key: string, strict: false|boolean ): ThisType<KeyVFactory>;
