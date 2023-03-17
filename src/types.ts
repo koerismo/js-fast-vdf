@@ -6,6 +6,7 @@ class KeyVSetCommon {
 	#values:	Array<KeyVChild> = [];
 	parent:		KeyVSetCommon|null = null;
 
+	/** Retrieves any child of this set with a matching key. This function throws an error when no child is found unless strict mode is explicitly disabled. */
 	any( key: string ): KeyVChild
 	any( key: string, strict: true ): KeyVChild;
 	any( key: string, strict: false|boolean ): KeyVChild|null;
@@ -20,6 +21,7 @@ class KeyVSetCommon {
 		return null;
 	}
 
+	/** Retrieves a set within this set. This function throws an error when no set is found unless strict mode is explicitly disabled. */
 	dir( key: string ): KeyVSet;
 	dir( key: string, strict: true ): KeyVSet;
 	dir( key: string, strict: false|boolean ): KeyVSet|null;
@@ -34,6 +36,7 @@ class KeyVSetCommon {
 		return null;
 	}
 
+	/** Retrieves a pair within this set. This function throws an error when no pair is found unless strict mode is explicitly disabled. */
 	pair( key: string ): KeyV;
 	pair( key: string, strict: true ): KeyV;
 	pair( key: string, strict: false|boolean ): KeyV|null;
@@ -48,6 +51,7 @@ class KeyVSetCommon {
 		return null;
 	}
 
+	/** Retrieves the value of a pair within this set. This function throws an error when no pair is found unless strict mode is explicitly disabled. */
 	value( key: string ): string;
 	value( key: string, strict: true ): string;
 	value( key: string, strict: false|boolean ): string|null;
@@ -55,7 +59,7 @@ class KeyVSetCommon {
 		return this.pair( key, strict )?.value;
 	}
 
-	/** Returns an array of children with matching keys, or all children if no key is provided. */
+	/** Returns an array of all children within this set with matching keys, or all children if no key is provided. */
 	all( key?: string ): KeyVChild[] {
 		if ( key == undefined ) return this.#values;
 
@@ -84,8 +88,12 @@ class KeyVSetCommon {
 		this.#values.push( kv );
 		return this;
 	}
-}
 
+	/** Creates a new factory object from this set for creating elements quickly. */
+	factory() {
+		return new KeyVFactory(this);
+	}
+}
 
 export class KeyVSet extends KeyVSetCommon {
 
@@ -115,4 +123,50 @@ export class KeyV {
 		this.parent	= null;
 	}
 
+}
+
+
+/** A class for KeyVSetCommon quick tree creation. */
+class KeyVFactory {
+	source: KeyVSetCommon;
+
+	constructor(source: KeyVSetCommon) {
+		this.source = source;
+	}
+
+	/** Creates to a new directory and moves into it. */
+	dir( key: string ): ThisType<KeyVFactory>;
+	dir( key: string, strict: true ): ThisType<KeyVFactory>;
+	dir( key: string, strict: false|boolean ): ThisType<KeyVFactory>;
+	dir( key: string, strict: boolean=false ): ThisType<KeyVFactory> {
+		let element = this.source.dir(key, false);
+		if (element && strict) throw(`Subset with key "${key}" already exists in set. Operating on existing sets is invalid in strict mode!`);
+		if (!element) {
+			element = new KeyVSet(key);
+			this.source.add(element);
+		}
+
+		this.source = element;
+		return this;
+	}
+
+	/** Creates a new pair. */
+	pair( key: string, value: string, query: string|null=null ): ThisType<KeyVFactory> {
+		this.source.add(new KeyV(key, value, query));
+		return this;
+	}
+
+	/** Goes back the specified number of levels. */
+	back( levels: number=1 ): ThisType<KeyVFactory> {
+		for ( let i=0; i<levels; i++ ) {
+			if (this.source.parent === null) throw('Attempted to navigate backwards past root set!');
+			this.source = this.source.parent;
+		};
+		return this;
+	}
+
+	/** Exits the factory. */
+	exit(): KeyVSetCommon {
+		return this.source;
+	}
 }
