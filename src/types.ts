@@ -6,57 +6,69 @@ class KeyVSetCommon {
 	#values:	Array<KeyVChild> = [];
 	parent:		KeyVSetCommon|null = null;
 
-	/** Retrieves any child of this set with a matching key. This function throws an error when no child is found unless strict mode is explicitly disabled. */
+	/** Retrieves any child of this set with a matching key. This function throws an error when no child is found unless a default value is defined. */
 	any( key: string ): KeyVChild
-	any( key: string, strict: true ): KeyVChild;
-	any( key: string, strict: false|boolean ): KeyVChild|null;
-	any( key: string, strict: boolean=true ): KeyVChild {
+	any<T extends any>( key: string, default_value?: T ): KeyVChild|T;
+	any<T extends any>( key: string, default_value?: T ): KeyVChild|T {
 		let i: number;
 		for ( i=this.#values.length-1; i>-1; i-- ) {
 			const child = this.#values[i];
 			if (child.key === key ) return child;
 		}
 
-		if (strict && i === -1) throw(`Child with key "${key}" does not exist in set!`);
-		return null;
+		if (default_value === undefined && i === -1) throw(`Child with key "${key}" does not exist in set!`);
+		return default_value;
 	}
 
-	/** Retrieves a set within this set. This function throws an error when no set is found unless strict mode is explicitly disabled. */
+	/** Retrieves a set within this set. This function throws an error when no set is found unless a default value is defined. */
 	dir( key: string ): KeyVSet;
-	dir( key: string, strict: true ): KeyVSet;
-	dir( key: string, strict: false|boolean ): KeyVSet|null;
-	dir( key: string, strict: boolean=true ): KeyVSet {
+	dir<T extends any>( key: string, default_value?: T ): KeyVSet|T;
+	dir<T extends any>( key: string, default_value?: T ): KeyVSet|T {
 		let i: number;
 		for ( i=this.#values.length-1; i>-1; i-- ) {
 			const child = this.#values[i];
 			if (child.key === key && child instanceof KeyVSet ) return child;
 		}
 
-		if (strict && i === -1) throw(`Subset with key "${key}" does not exist in set!`);
-		return null;
+		if (default_value === undefined && i === -1) throw(`Subset with key "${key}" does not exist in set!`);
+		return default_value;
 	}
 
-	/** Retrieves a pair within this set. This function throws an error when no pair is found unless strict mode is explicitly disabled. */
+	dirs( key?: string ): KeyVSet[] {
+		const out = [];
+		for ( let child of this.#values ) {
+			if ( child instanceof KeyVSet && (key == null || key === child.key )) out.push(child);
+		}
+		return out;
+	}
+
+	pairs( key?: string ): KeyV[] {
+		const out = [];
+		for ( let child of this.#values ) {
+			if ( child instanceof KeyV && (key == null || key === child.key )) out.push(child);
+		}
+		return out;
+	}
+
+	/** Retrieves a pair within this set. This function throws an error when no pair is found unless a default value is defined. */
 	pair( key: string ): KeyV;
-	pair( key: string, strict: true ): KeyV;
-	pair( key: string, strict: false|boolean ): KeyV|null;
-	pair( key: string, strict: boolean=true ): KeyV {
+	pair<T extends any>( key: string, default_value?: T ): KeyV|T;
+	pair<T extends any>( key: string, default_value?: T ): KeyV|T {
 		let i: number;
 		for ( i=this.#values.length-1; i>-1; i-- ) {
 			const child = this.#values[i];
 			if (child.key === key && child instanceof KeyV ) return child;
 		}
 
-		if (strict && i === -1) throw(`Pair with key "${key}" does not exist in set!`);
-		return null;
+		if (default_value === undefined && i === -1) throw(`Pair with key "${key}" does not exist in set!`);
+		return default_value;
 	}
 
-	/** Retrieves the value of a pair within this set. This function throws an error when no pair is found unless strict mode is explicitly disabled. */
+	/** Retrieves the value of a pair within this set. This function throws an error when no pair is found unless a default value is defined. */
 	value( key: string ): string;
-	value( key: string, strict: true ): string;
-	value( key: string, strict: false|boolean ): string|null;
-	value( key: string, strict: boolean=true ): string {
-		return this.pair( key, strict )?.value;
+	value<T extends any>( key: string, default_value?: T ): string|T
+	value<T extends any>( key: string, default_value?: T ): string|T {
+		return this.pair( key, null )?.value ?? default_value;
 	}
 
 	/** Returns an array of all children within this set with matching keys, or all children if no key is provided. */
