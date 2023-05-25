@@ -23,8 +23,8 @@ catch(e) { console.warn(e) }
 // Strict behaviour is enabled by default with all KeyVSet methods.
 // Since this pair does not exist, this call throws an error.
 
-console.log(root.pair('abc', false));
-// The second argument, "strict", can be set to false to
+console.log(root.pair('abc', null));
+// The default value can be set to null to
 // disable this behaviour, instead returning null.
 ```
 
