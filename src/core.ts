@@ -26,6 +26,7 @@ function is_term( code: number ) {
 const TE = new TextEncoder();
 export function parse( text:string, options:ParseOptions ) {
 	const data			= TE.encode( text );
+	const length        = data.length;
 	let key: string		= null;
 	let value: string	= null;
 
@@ -98,7 +99,7 @@ export function parse( text:string, options:ParseOptions ) {
 		if ( is_plain(c) ) {
 			const start = i;
 
-			while (true) {
+			while (i < length) {
 				i++;
 				if ( is_term(data[i]) && data[i-1] !== C_ESCAPE ) break;
 			}

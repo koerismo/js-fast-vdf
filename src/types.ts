@@ -95,7 +95,7 @@ class KeyVSetCommon {
 	}
 
 	/** Adds a child to this set. */
-	add( kv: KeyVChild ): ThisType<KeyVSetCommon> {
+	add( kv: KeyVChild ): this {
 		kv.parent = this;
 		this.#values.push( kv );
 		return this;
@@ -147,10 +147,10 @@ class KeyVFactory {
 	}
 
 	/** Creates to a new directory and moves into it. */
-	dir( key: string ): ThisType<KeyVFactory>;
-	dir( key: string, strict: true ): ThisType<KeyVFactory>;
-	dir( key: string, strict: false|boolean ): ThisType<KeyVFactory>;
-	dir( key: string, strict: boolean=false ): ThisType<KeyVFactory> {
+	dir( key: string ): this;
+	dir( key: string, strict: true ): this;
+	dir( key: string, strict: false|boolean ): this;
+	dir( key: string, strict: boolean=false ): this {
 		let element = this.source.dir(key, false);
 		if (element && strict) throw(`Subset with key "${key}" already exists in set. Operating on existing sets is invalid in strict mode!`);
 		if (!element) {
@@ -163,13 +163,13 @@ class KeyVFactory {
 	}
 
 	/** Creates a new pair. */
-	pair( key: string, value: string, query: string|null=null ): ThisType<KeyVFactory> {
+	pair( key: string, value: string, query: string|null=null ): this {
 		this.source.add(new KeyV(key, value, query));
 		return this;
 	}
 
 	/** Goes back the specified number of levels. */
-	back( levels: number=1 ): ThisType<KeyVFactory> {
+	back( levels: number=1 ): this {
 		for ( let i=0; i<levels; i++ ) {
 			if (this.source.parent === null) throw('Attempted to navigate backwards past root set!');
 			this.source = this.source.parent;
