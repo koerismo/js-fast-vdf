@@ -82,10 +82,15 @@ class KeyVSetCommon {
 		return out;
 	}
 
-	/** Deletes a child object if the key is matched. Returns true if a child was deleted. Warning: This method may affect the order of keys! */
-	delete( kv: KeyVChild ): boolean {
+	/** Deletes a child object if the key is matched. Returns true if a child was deleted. If fast is explicitly enabled, the keys will be reordered to make the deletion O(1). */
+	delete( kv: KeyVChild, fast: boolean=false ): boolean {
 		const ind = this.#values.indexOf(kv);
 		if (ind === -1) return false;
+
+		if (!fast) {
+			this.#values.splice(ind, 1);
+			return true;
+		}
 
 		// Adapted from https://stackoverflow.com/a/54270177
 		this.#values[ind] = this.#values[this.#values.length-1];
