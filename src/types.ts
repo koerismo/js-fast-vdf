@@ -149,10 +149,10 @@ class KeyVSetCommon {
 		return new KeyVFactory(this);
 	}
 
-	dump(format: DumpFormatOptions=DumpFormatDefaults, level: number=0): string {
+	dump(format: DumpFormatOptions=DumpFormatDefaults, indent: string=''): string {
 		let out = '';
 		for ( const child of this.#values ) {
-			out += child.dump(format, level);
+			out += child.dump(format, indent + format.indent);
 		}
 		return out;
 	}
@@ -167,13 +167,12 @@ export class KeyVSet extends KeyVSetCommon {
 		this.key = key;
 	}
 
-	dump(format: DumpFormatOptions=DumpFormatDefaults, level: number=0) {
-		const indent = format.indent.repeat(level);
+	dump(format: DumpFormatOptions=DumpFormatDefaults, indent: string) {
 		let out =
-			indent + escape(this.key, format.quote) + '\n'
+			  indent + escape(this.key, format.quote) + '\n'
 			+ indent + '{\n';
 
-		out += super.dump(format, level+1);
+		out += super.dump(format, indent + format.indent);
 		out += indent + '}\n';
 		return out;
 	}
@@ -197,8 +196,8 @@ export class KeyV {
 		this.parent	= null;
 	}
 
-	dump(format: DumpFormatOptions=DumpFormatDefaults, level: number=0) {
-		return format.indent.repeat(level)
+	dump(format: DumpFormatOptions=DumpFormatDefaults, indent: string) {
+		return indent
 			+ escape(this.key, format.quote)
 			+ ' '
 			+ escape(this.value, format.quote)

@@ -3,13 +3,22 @@ import { vdf } from '../dist/index.js';
 
 const TRIALS = 20;
 const vmfString = readFileSync('./test/vmf/pl_goldrush_halloween.vmf', 'utf-8');
-const start_vmf = performance.now();
-var dummy;
+const start_parse = performance.now();
+var dummy_in, dummy_out;
 
 for ( let i=0; i<TRIALS; i++ ) {
-	dummy = vdf.parse(vmfString);
+	dummy_in = vdf.parse(vmfString);
 }
 
-const end_vmf = performance.now();
-console.log('Speedtest results ('+TRIALS+' runs):', (end_vmf-start_vmf) / TRIALS, 'ms');
-dummy;
+const end_parse = performance.now();
+
+for ( let i=0; i<TRIALS; i++ ) {
+	dummy_out = dummy_in.dump();
+}
+
+const end_dump = performance.now();
+console.log(`
+Speedtest results (${TRIALS} runs):
+	Parsing: ${(end_parse-start_parse) / TRIALS} ms
+	Dumping: ${(end_dump-end_parse) / TRIALS} ms
+`);
