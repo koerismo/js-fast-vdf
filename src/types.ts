@@ -1,5 +1,43 @@
 export type KeyVChild = KeyV|KeyVSet;
 
+export interface DumpFormatOptions {
+	indent:  string,
+	quote:   'always'|'auto'
+}
+
+const DumpFormatDefaults: DumpFormatOptions = {
+	indent:  '\t',
+	quote:   'always',
+}
+
+// TODO: Implement unescaping strings on import.
+// const RE_UNESCAPE = /\\(.)/g;
+// function unescape(value: string): string {
+// 	return value.replace(RE_UNESCAPE, '$1');
+// }
+
+function needs_quotes(value: string): boolean {
+	if (value.includes(' ')) return true;
+	if (value.startsWith('[') && value.endsWith(']')) return true;
+	return false;
+}
+
+function escape(value: string, quote: 'auto'|'always') {
+	if (quote === 'always' || needs_quotes(value)) {
+		const escaped = value
+			.replaceAll('\\', '\\\\')
+			.replaceAll('"', '\\"');
+		return '"' + escaped + '"';
+	}
+
+	return value
+		.replaceAll('\\', '\\\\')
+		.replaceAll('"', '\\"')
+		.replaceAll('{', '\\{')
+		.replaceAll('}', '\\}');
+}
+
+
 /** Defines common methods between KeyValueSet and KeyValueRoot. */
 class KeyVSetCommon {
 
@@ -110,6 +148,14 @@ class KeyVSetCommon {
 	factory() {
 		return new KeyVFactory(this);
 	}
+
+	dump(format: DumpFormatOptions=DumpFormatDefaults, level: number=0): string {
+		let out = '';
+		for ( const child of this.#values ) {
+			out += child.dump(format, level);
+		}
+		return out;
+	}
 }
 
 export class KeyVSet extends KeyVSetCommon {
@@ -119,6 +165,17 @@ export class KeyVSet extends KeyVSetCommon {
 	constructor( key: string ) {
 		super();
 		this.key = key;
+	}
+
+	dump(format: DumpFormatOptions=DumpFormatDefaults, level: number=0) {
+		const indent = format.indent.repeat(level);
+		let out =
+			indent + escape(this.key, format.quote) + '\n'
+			+ indent + '{\n';
+
+		out += super.dump(format, level+1);
+		out += indent + '}\n';
+		return out;
 	}
 }
 
@@ -140,6 +197,13 @@ export class KeyV {
 		this.parent	= null;
 	}
 
+	dump(format: DumpFormatOptions=DumpFormatDefaults, level: number=0) {
+		return format.indent.repeat(level)
+			+ escape(this.key, format.quote)
+			+ ' '
+			+ escape(this.value, format.quote)
+			+ '\n';
+	}
 }
 
 
