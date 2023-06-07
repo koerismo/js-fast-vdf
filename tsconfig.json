@@ -5,7 +5,8 @@
 		"rootDir": "src",
 		"outDir": "dist",
 		"lib": [ "DOM", "ES2022" ],
-		"declaration": true
+		"declaration": true,
+		"alwaysStrict": true
 	},
 	"include": [ "src/**/*" ]
 }

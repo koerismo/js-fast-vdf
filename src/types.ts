@@ -7,6 +7,8 @@ export interface DumpFormatOptions {
 
 type WriteFunction = (value: string) => void;
 
+const MAX_CONCAT_SIZE = 64000;
+
 const DumpFormatDefaults: DumpFormatOptions = {
 	indent:  '\t',
 	quote:   'always',
@@ -152,27 +154,25 @@ class KeyVSetCommon {
 	}
 
 	dump(format: DumpFormatOptions=DumpFormatDefaults): string {
-
-		// The max size that the concat operator works with is 64,000 items
-		const out: string[] = new Array(64000);
-		let chunked = '';
+		const out: string[] = new Array(MAX_CONCAT_SIZE);
+		let combined = '';
 		let i = 0;
 
 		// Writer function writes to the array until it exceeds the buffer length, at
 		// which point it will be appended to the string in one expensive operation.
 		this.__dump__(format, '', (value: string) => {
 			out[i] = value;
-			i = (i+1) % 64000;
+			i = (i+1) % MAX_CONCAT_SIZE;
 			if (i === 0) {
-				chunked = String.prototype.concat.apply(chunked, out);
+				combined = String.prototype.concat.apply(combined, out);
 			}
 		});
 
 		// Leftover content, if it exists, is also appended to the string. This
 		// has to be handled somewhat carefully to avoid spillage from previous
 		// rounds of data handling.
-		if (i) chunked = String.prototype.concat.apply(chunked, out.slice(0, i));
-		return chunked;
+		if (i) combined = String.prototype.concat.apply(combined, out.slice(0, i));
+		return combined;
 	}
 
 	__dump__(format: DumpFormatOptions, indent: string, write: WriteFunction) {
