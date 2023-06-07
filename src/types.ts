@@ -5,6 +5,8 @@ export interface DumpFormatOptions {
 	quote:   'always'|'auto'
 }
 
+type WriteFunction = (value: string) => void;
+
 const DumpFormatDefaults: DumpFormatOptions = {
 	indent:  '\t',
 	quote:   'always',
@@ -149,12 +151,34 @@ class KeyVSetCommon {
 		return new KeyVFactory(this);
 	}
 
-	dump(format: DumpFormatOptions=DumpFormatDefaults, indent: string=''): string {
-		let out = '';
+	dump(format: DumpFormatOptions=DumpFormatDefaults): string {
+
+		// The max size that the concat operator works with is 64,000 items
+		const out: string[] = new Array(64000);
+		let chunked = '';
+		let i = 0;
+
+		// Writer function writes to the array until it exceeds the buffer length, at
+		// which point it will be appended to the string in one expensive operation.
+		this.__dump__(format, '', (value: string) => {
+			out[i] = value;
+			i = (i+1) % 64000;
+			if (i === 0) {
+				chunked = String.prototype.concat.apply(chunked, out);
+			}
+		});
+
+		// Leftover content, if it exists, is also appended to the string. This
+		// has to be handled somewhat carefully to avoid spillage from previous
+		// rounds of data handling.
+		if (i) chunked = String.prototype.concat.apply(chunked, out.slice(0, i));
+		return chunked;
+	}
+
+	__dump__(format: DumpFormatOptions, indent: string, write: WriteFunction) {
 		for ( const child of this.#values ) {
-			out += child.dump(format, indent);
+			child.__dump__(format, indent, write);
 		}
-		return out;
 	}
 }
 
@@ -167,14 +191,15 @@ export class KeyVSet extends KeyVSetCommon {
 		this.key = key;
 	}
 
-	dump(format: DumpFormatOptions=DumpFormatDefaults, indent: string) {
-		let out =
-			  indent + escape(this.key, format.quote) + '\n'
-			+ indent + '{\n';
+	__dump__(format: DumpFormatOptions, indent: string, write: WriteFunction) {
+		write(
+			indent
+			+ escape(this.key, format.quote)
+			+ '\n' + indent + '{\n'
+		);
 
-		out += super.dump(format, indent + format.indent);
-		out += indent + '}\n';
-		return out;
+		super.__dump__(format, indent + format.indent, write);
+		write( indent + '}\n' );
 	}
 }
 
@@ -196,12 +221,14 @@ export class KeyV {
 		this.parent	= null;
 	}
 
-	dump(format: DumpFormatOptions=DumpFormatDefaults, indent: string) {
-		return indent
+	__dump__(format: DumpFormatOptions, indent: string, write: WriteFunction) {
+		write(
+			indent
 			+ escape(this.key, format.quote)
 			+ ' '
 			+ escape(this.value, format.quote)
-			+ '\n';
+			+ '\n'
+		);
 	}
 }
 
