@@ -7,11 +7,13 @@ describe('Parser', () => {
 		assert.deepStrictEqual(
 			vdf.parse(`
 				"hello\\" \\"world" value
-				escaped\\ key value`)
+				escaped\\ key value
+				"escaped escape\\\\" value`)
 				.all(),
 			new KeyVRoot()
 				.add(new KeyV('hello\\" \\"world', 'value'))
 				.add(new KeyV('escaped\\ key', 'value'))
+				.add(new KeyV('escaped escape\\\\', 'value'))
 				.all()
 		);
 	});
