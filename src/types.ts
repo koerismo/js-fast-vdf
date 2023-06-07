@@ -152,7 +152,7 @@ class KeyVSetCommon {
 	dump(format: DumpFormatOptions=DumpFormatDefaults, indent: string=''): string {
 		let out = '';
 		for ( const child of this.#values ) {
-			out += child.dump(format, indent + format.indent);
+			out += child.dump(format, indent);
 		}
 		return out;
 	}

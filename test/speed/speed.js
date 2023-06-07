@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs';
-import { vdf } from '../dist/index.js';
+import { vdf } from '../../dist/index.js';
 
 const TRIALS = 20;
-const vmfString = readFileSync('./test/vmf/pl_goldrush_halloween.vmf', 'utf-8');
+const vmfString = readFileSync('test/speed/pl_goldrush_halloween.vmf', 'utf-8');
 const start_parse = performance.now();
 var dummy_in, dummy_out;
 
@@ -13,7 +13,7 @@ for ( let i=0; i<TRIALS; i++ ) {
 const end_parse = performance.now();
 
 for ( let i=0; i<TRIALS; i++ ) {
-	dummy_out = dummy_in.dump();
+	dummy_out = dummy_in.dump({ quote: 'always', indent: '\t' });
 }
 
 const end_dump = performance.now();
