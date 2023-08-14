@@ -2,8 +2,8 @@ import assert from 'node:assert';
 import { vdf, KeyVRoot, KeyVSet, KeyV } from '../dist/index.js';
 
 describe('Parser', () => {
-	it('Handles escapes', () => {
 
+	it('Handles escapes', () => {
 		assert.deepStrictEqual(
 			vdf.parse(`
 				"hello\\" \\"world" value
@@ -14,6 +14,19 @@ describe('Parser', () => {
 				.add(new KeyV('hello\\" \\"world', 'value'))
 				.add(new KeyV('escaped\\ key', 'value'))
 				.add(new KeyV('escaped escape\\\\', 'value'))
+				.all()
+		);
+	});
+
+	it('Responds to escape parameter', () => {
+		assert.deepStrictEqual(
+			vdf.parse(`
+				"hello\\" "world" [query]
+				key\\ "path\\to\\some\\place\\"`, { escapes: false })
+				.all(),
+			new KeyVRoot()
+				.add(new KeyV('hello\\', 'world', 'query'))
+				.add(new KeyV('key\\', 'path\\to\\some\\place\\'))
 				.all()
 		);
 	});
