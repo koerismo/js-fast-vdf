@@ -51,8 +51,8 @@ class KeyVSetCommon {
 
 	/** Retrieves any child of this set with a matching key. This function throws an error when no child is found unless a default value is defined. */
 	any( key: string ): KeyVChild
-	any<T extends any>( key: string, default_value?: T, strict?: boolean ): KeyVChild|T;
-	any<T extends any>( key: string, default_value?: T, strict: boolean=this.strict ): KeyVChild|T {
+	any<T extends any>( key: string, strict?: boolean, default_value?: T ): KeyVChild|T;
+	any<T extends any>( key: string, strict: boolean=this.strict, default_value?: T ): KeyVChild|T {
 		let i: number;
 		for ( i=this.#values.length-1; i>-1; i-- ) {
 			const child = this.#values[i];
@@ -65,8 +65,8 @@ class KeyVSetCommon {
 
 	/** Retrieves a set within this set. This function throws an error when no set is found unless a default value is defined. */
 	dir( key: string ): KeyVSet;
-	dir<T extends any>( key: string, default_value?: T, strict?: boolean ): KeyVSet|T;
-	dir<T extends any>( key: string, default_value?: T, strict: boolean=this.strict ): KeyVSet|T {
+	dir<T extends any>( key: string, strict?: boolean, default_value?: T ): KeyVSet|T;
+	dir<T extends any>( key: string, strict: boolean=this.strict, default_value?: T ): KeyVSet|T {
 		let i: number;
 		for ( i=this.#values.length-1; i>-1; i-- ) {
 			const child = this.#values[i];
@@ -95,8 +95,8 @@ class KeyVSetCommon {
 
 	/** Retrieves a pair within this set. This function throws an error when no pair is found unless a default value is defined. */
 	pair( key: string ): KeyV;
-	pair<T extends any>( key: string, default_value?: T, strict?: boolean ): KeyV|T;
-	pair<T extends any>( key: string, default_value?: T, strict: boolean=this.strict ): KeyV|T {
+	pair<T extends any>( key: string, strict?: boolean, default_value?: T ): KeyV|T;
+	pair<T extends any>( key: string, strict: boolean=this.strict, default_value?: T ): KeyV|T {
 		let i: number;
 		for ( i=this.#values.length-1; i>-1; i-- ) {
 			const child = this.#values[i];
@@ -109,9 +109,9 @@ class KeyVSetCommon {
 
 	/** Retrieves the value of a pair within this set. This function throws an error when no pair is found unless a default value is defined. */
 	value( key: string ): string;
-	value<T extends any>( key: string, default_value?: T, strict?: boolean ): string|T
-	value<T extends any>( key: string, default_value?: T, strict: boolean=this.strict ): string|T {
-		return this.pair( key, null, strict )?.value ?? default_value;
+	value<T extends any>( key: string, strict?: boolean, default_value?: T ): string|T
+	value<T extends any>( key: string, strict: boolean=this.strict, default_value?: T ): string|T {
+		return this.pair( key, strict, null )?.value ?? default_value;
 	}
 
 	/** Returns an array of all children within this set with matching keys, or all children if no key is provided. */
@@ -243,18 +243,10 @@ class KeyVFactory {
 	}
 
 	/** Creates to a new directory and moves into it. */
-	dir( key: string ): this;
-	dir( key: string, strict: true ): this;
-	dir( key: string, strict: false|boolean ): this;
-	dir( key: string, strict: boolean=false ): this {
-		let element = this.source.dir(key, false);
-		if (element && strict) throw(`Subset with key "${key}" already exists in set. Operating on existing sets is invalid in strict mode!`);
-		if (!element) {
-			element = new KeyVSet(key);
-			this.source.add(element);
-		}
-
-		this.source = element;
+	dir( key: string ): this {
+		const dir = new KeyVSet(key);
+		this.source.add(dir);
+		this.source = dir;
 		return this;
 	}
 
