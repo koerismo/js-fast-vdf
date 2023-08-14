@@ -50,7 +50,7 @@ class KeyVSetCommon {
 	strict:     boolean = true;
 
 	/** Retrieves any child of this set with a matching key. This function throws an error when no child is found unless a default value is defined. */
-	any( key: string ): KeyVChild
+	any( key: string, strict?: boolean ): KeyVChild
 	any<T extends any>( key: string, strict?: boolean, default_value?: T ): KeyVChild|T;
 	any<T extends any>( key: string, strict: boolean=this.strict, default_value?: T ): KeyVChild|T {
 		let i: number;
@@ -64,7 +64,7 @@ class KeyVSetCommon {
 	}
 
 	/** Retrieves a set within this set. This function throws an error when no set is found unless a default value is defined. */
-	dir( key: string ): KeyVSet;
+	dir( key: string, strict?: boolean ): KeyVSet;
 	dir<T extends any>( key: string, strict?: boolean, default_value?: T ): KeyVSet|T;
 	dir<T extends any>( key: string, strict: boolean=this.strict, default_value?: T ): KeyVSet|T {
 		let i: number;
@@ -94,7 +94,7 @@ class KeyVSetCommon {
 	}
 
 	/** Retrieves a pair within this set. This function throws an error when no pair is found unless a default value is defined. */
-	pair( key: string ): KeyV;
+	pair( key: string, strict?: boolean ): KeyV;
 	pair<T extends any>( key: string, strict?: boolean, default_value?: T ): KeyV|T;
 	pair<T extends any>( key: string, strict: boolean=this.strict, default_value?: T ): KeyV|T {
 		let i: number;
@@ -108,7 +108,7 @@ class KeyVSetCommon {
 	}
 
 	/** Retrieves the value of a pair within this set. This function throws an error when no pair is found unless a default value is defined. */
-	value( key: string ): string;
+	value( key: string, strict?: boolean ): string;
 	value<T extends any>( key: string, strict?: boolean, default_value?: T ): string|T
 	value<T extends any>( key: string, strict: boolean=this.strict, default_value?: T ): string|T {
 		return this.pair( key, strict, null )?.value ?? default_value;
