@@ -100,7 +100,7 @@ class KeyVSetCommon {
 		let i: number;
 		for ( i=this.#values.length-1; i>-1; i-- ) {
 			const child = this.#values[i];
-			if (child.key === key && child instanceof KeyV) return child;
+			if ((child.key === key || (!strict && child.key.toLowerCase() === key)) && child instanceof KeyV) return child;
 		}
 
 		if (default_value === undefined && i === -1) throw(`Pair with key "${key}" does not exist in set!`);
@@ -111,7 +111,7 @@ class KeyVSetCommon {
 	value( key: string, strict?: boolean ): string;
 	value<T extends any>( key: string, strict?: boolean, default_value?: T ): string|T
 	value<T extends any>( key: string, strict: boolean=this.strict, default_value?: T ): string|T {
-		return this.pair( key, strict, null )?.value ?? default_value;
+		return this.pair( key, strict, default_value === undefined ? undefined : null )?.value ?? default_value;
 	}
 
 	/** Returns an array of all children within this set with matching keys, or all children if no key is provided. */
