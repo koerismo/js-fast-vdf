@@ -32,19 +32,23 @@ console.log(root.pair('abc', null));
 # API
 
 ## Functions
-### parse.**parse**(data: string): KeyVRoot
+### parse.**parse**(data: string, options?: SharedParseOptions): KeyVRoot
 Parses data into a tree of objects.
 
 > **Parameters**
 >
 > `data` The string to parse.
+>
+> `options` The parser configuration.
 
-### parse.**json**(data: string): Object
+### parse.**json**(data: string, options?: SharedParseOptions): Object
 Parses data into a regular javascript object.
 
 > **Parameters**
 >
 > `data` The string to parse.
+>
+> `options` The parser configuration.
 
 ### core.**parse**(text: string, options: ParseOptions): void
 The internal API used by the parse.xyz functions.
@@ -57,11 +61,19 @@ The internal API used by the parse.xyz functions.
 
 ## Types
 
+### SharedParseOptions
+```ts
+interface SharedParseOptions {
+    escapes: boolean;
+}
+```
+
 ### ParseOptions
 ```ts
 interface ParseOptions {
     on_key:   (key: string, value: string, query?: string) => void;
     on_enter: (key: string) => void;
     on_exit:  () => void;
+	escapes:  boolean;
 }
 ```
