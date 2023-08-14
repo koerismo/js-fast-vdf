@@ -30,7 +30,9 @@ export function json( data:string, env:Object={} ): unknown {
 			out = out[key] = { __parent__: out };
 		},
 		on_exit() {
+			const ref = out;
 			out = out.__parent__;
+			delete ref.__parent__;
 		},
 		on_key(key, value, query) {
 			if ((query in env) && !env[query]) return;
@@ -38,5 +40,6 @@ export function json( data:string, env:Object={} ): unknown {
 		},
 	});
 
+	delete out.__parent__;
 	return out;
 }
