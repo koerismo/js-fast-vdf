@@ -4,7 +4,7 @@
 		"target": "ESNext",
 		"rootDir": "src",
 		"outDir": "dist",
-		"lib": [ "DOM", "ES2022" ],
+		"lib": [ "DOM", "ES2021" ],
 		"declaration": true,
 		"alwaysStrict": true
 	},

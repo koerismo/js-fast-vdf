@@ -22,7 +22,7 @@ export function parse( data:string ): KeyVRoot {
 }
 
 /** Parses data into a regular javascript object. */
-export function json( data:string, env:Object={} ): Object {
+export function json( data:string, env:Object={} ): unknown {
 	let out = { __parent__: null };
 
 	cparse( data, {

@@ -47,15 +47,16 @@ class KeyVSetCommon {
 
 	#values:	Array<KeyVChild> = [];
 	parent:		KeyVSetCommon|null = null;
+	strict:     boolean = true;
 
 	/** Retrieves any child of this set with a matching key. This function throws an error when no child is found unless a default value is defined. */
 	any( key: string ): KeyVChild
-	any<T extends any>( key: string, default_value?: T ): KeyVChild|T;
-	any<T extends any>( key: string, default_value?: T ): KeyVChild|T {
+	any<T extends any>( key: string, default_value?: T, strict?: boolean ): KeyVChild|T;
+	any<T extends any>( key: string, default_value?: T, strict: boolean=this.strict ): KeyVChild|T {
 		let i: number;
 		for ( i=this.#values.length-1; i>-1; i-- ) {
 			const child = this.#values[i];
-			if (child.key === key ) return child;
+			if (child.key === key || (!strict && child.key.toLowerCase() === key)) return child;
 		}
 
 		if (default_value === undefined && i === -1) throw(`Child with key "${key}" does not exist in set!`);
@@ -64,42 +65,42 @@ class KeyVSetCommon {
 
 	/** Retrieves a set within this set. This function throws an error when no set is found unless a default value is defined. */
 	dir( key: string ): KeyVSet;
-	dir<T extends any>( key: string, default_value?: T ): KeyVSet|T;
-	dir<T extends any>( key: string, default_value?: T ): KeyVSet|T {
+	dir<T extends any>( key: string, default_value?: T, strict?: boolean ): KeyVSet|T;
+	dir<T extends any>( key: string, default_value?: T, strict: boolean=this.strict ): KeyVSet|T {
 		let i: number;
 		for ( i=this.#values.length-1; i>-1; i-- ) {
 			const child = this.#values[i];
-			if (child.key === key && child instanceof KeyVSet ) return child;
+			if ((child.key === key || (!strict && child.key.toLowerCase() === key)) && child instanceof KeyVSet) return child;
 		}
 
 		if (default_value === undefined && i === -1) throw(`Subset with key "${key}" does not exist in set!`);
 		return default_value;
 	}
 
-	dirs( key?: string ): KeyVSet[] {
+	dirs( key?: string, strict: boolean=this.strict ): KeyVSet[] {
 		const out = [];
 		for ( let child of this.#values ) {
-			if ( child instanceof KeyVSet && (key == null || key === child.key )) out.push(child);
+			if (child instanceof KeyVSet && (key == null || key === child.key || (!strict && child.key.toLowerCase() === key))) out.push(child);
 		}
 		return out;
 	}
 
-	pairs( key?: string ): KeyV[] {
+	pairs( key?: string, strict: boolean=this.strict ): KeyV[] {
 		const out = [];
 		for ( let child of this.#values ) {
-			if ( child instanceof KeyV && (key == null || key === child.key )) out.push(child);
+			if (child instanceof KeyV && (key == null || key === child.key || (!strict && child.key.toLowerCase() === key))) out.push(child);
 		}
 		return out;
 	}
 
 	/** Retrieves a pair within this set. This function throws an error when no pair is found unless a default value is defined. */
 	pair( key: string ): KeyV;
-	pair<T extends any>( key: string, default_value?: T ): KeyV|T;
-	pair<T extends any>( key: string, default_value?: T ): KeyV|T {
+	pair<T extends any>( key: string, default_value?: T, strict?: boolean ): KeyV|T;
+	pair<T extends any>( key: string, default_value?: T, strict: boolean=this.strict ): KeyV|T {
 		let i: number;
 		for ( i=this.#values.length-1; i>-1; i-- ) {
 			const child = this.#values[i];
-			if (child.key === key && child instanceof KeyV ) return child;
+			if (child.key === key && child instanceof KeyV) return child;
 		}
 
 		if (default_value === undefined && i === -1) throw(`Pair with key "${key}" does not exist in set!`);
@@ -108,18 +109,18 @@ class KeyVSetCommon {
 
 	/** Retrieves the value of a pair within this set. This function throws an error when no pair is found unless a default value is defined. */
 	value( key: string ): string;
-	value<T extends any>( key: string, default_value?: T ): string|T
-	value<T extends any>( key: string, default_value?: T ): string|T {
-		return this.pair( key, null )?.value ?? default_value;
+	value<T extends any>( key: string, default_value?: T, strict?: boolean ): string|T
+	value<T extends any>( key: string, default_value?: T, strict: boolean=this.strict ): string|T {
+		return this.pair( key, null, strict )?.value ?? default_value;
 	}
 
 	/** Returns an array of all children within this set with matching keys, or all children if no key is provided. */
-	all( key?: string ): KeyVChild[] {
+	all( key?: string, strict: boolean=this.strict ): KeyVChild[] {
 		if ( key == undefined ) return this.#values;
 
 		const out = [];
 		for ( let child of this.#values ) {
-			if ( child.key === key ) out.push( child );
+			if (child.key === key || (!strict && child.key.toLowerCase() === key)) out.push( child );
 		}
 		return out;
 	}
