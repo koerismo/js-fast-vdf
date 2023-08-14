@@ -20,7 +20,7 @@ function is_plain( code: number ) {
 
 function is_term( code: number ) {
 	return (
-		code == 32 || code == 9 || code == C_LN ||
+		code == 32 || code == 9 || code == 13 || code == C_LN ||
 		code == C_BOPEN || code == C_BCLOSE );
 }
 
@@ -37,7 +37,7 @@ export function parse( text:string, options:ParseOptions ) {
 		const escaped = !no_escapes && data[i-1] === C_ESCAPE;
 
 		// Spacing ( tab, space, \r, \n )
-		if ( c === 9 || c === 32 || c === 13 || c === C_LN ) continue;
+		if ( c === 32 || c === 9 || c === 13 || c === C_LN ) continue;
 
 		// Start bracket
 		if ( c === C_BOPEN && !escaped ) {
