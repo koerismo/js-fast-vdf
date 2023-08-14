@@ -1,8 +1,14 @@
 import { parse as cparse } from './core.js';
 import { KeyV,  KeyVRoot,  KeyVSet  } from './types.js';
 
-/** Parses data into a tree of objects. */
-export function parse( data:string ): KeyVRoot {
+interface SharedParseOptions {
+	escapes?: boolean;
+}
+
+/** Parses data into a tree of objects.
+ * @param {string} data The data to parse.
+ */
+export function parse( data:string, options?: SharedParseOptions ): KeyVRoot {
 	let out: KeyVSet|KeyVRoot = new KeyVRoot();
 
 	cparse( data, {
@@ -16,13 +22,14 @@ export function parse( data:string ): KeyVRoot {
 		on_key(key, value, query) {
 			out.add(new KeyV( key, value, query ));
 		},
+		escapes: options?.escapes,
 	});
 
 	return out;
 }
 
 /** Parses data into a regular javascript object. */
-export function json( data:string, env:Object={} ): unknown {
+export function json( data:string, env:Object={}, options?: SharedParseOptions ): unknown {
 	let out = { __parent__: null };
 
 	cparse( data, {
@@ -38,6 +45,7 @@ export function json( data:string, env:Object={} ): unknown {
 			if ((query in env) && !env[query]) return;
 			out[key] = value;
 		},
+		escapes: options?.escapes,
 	});
 
 	delete out.__parent__;
