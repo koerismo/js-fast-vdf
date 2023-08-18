@@ -21,7 +21,6 @@ const test_escape = new KeyVRoot().factory()
 
 describe('Object', () => {
 
-
 it('Dumps structures with correct indentation', () => {
 const dumpy = test_indent.dump({ quote: 'always', indent: '> ' });
 assert.strictEqual(dumpy,
