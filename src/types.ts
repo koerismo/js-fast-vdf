@@ -41,29 +41,23 @@ function escape(value: string, quote: 'auto'|'always') {
 		.replaceAll('}', '\\}');
 }
 
-function compare_keys(a: string, b: string, strict: boolean) {
-	if (strict) return a === b;
-	return (a.length === b.length && a.toLowerCase() === b);
-}
-
 
 /** Defines common methods between KeyValueSet and KeyValueRoot. */
 class KeyVSetCommon {
 
 	#values:	Array<KeyVChild> = [];
 	parent:		KeyVSetCommon|null = null;
-	strict:     boolean = true;
 
 	/** Retrieves any child of this set with a matching key. This function throws an error when no child is found unless a default value is defined. */
-	any( key: string, strict?: boolean ): KeyVChild
-	any<T extends any>( key: string, strict?: boolean, default_value?: T ): KeyVChild|T;
-	any<T extends any>( key: string, strict: boolean=this.strict, default_value?: T ): KeyVChild|T {
-		if (!strict) key = key.toLowerCase();
+	any( key: string ): KeyVChild;
+	any<T extends any>( key: string, default_value?: T ): KeyVChild|T;
+	any<T extends any>( key: string, default_value?: T ): KeyVChild|T {
+		key = key.toLowerCase();
 
 		let i: number;
 		for ( i=this.#values.length-1; i>-1; i-- ) {
 			const child = this.#values[i];
-			if (compare_keys(child.key, key, strict)) return child;
+			if (child.key.toLowerCase() === key) return child;
 		}
 
 		if (default_value === undefined && i === -1) throw(`Child with key "${key}" does not exist in set!`);
@@ -71,63 +65,66 @@ class KeyVSetCommon {
 	}
 
 	/** Returns an array of all children within this set with matching keys, or all children if no key is provided. */
-	all( key?: string, strict: boolean=this.strict ): KeyVChild[] {
+	all( key?: string ): KeyVChild[] {
 		if ( key == undefined ) return this.#values;
-		if (!strict) key = key.toLowerCase();
+		key = key.toLowerCase();
 
 		const out = [];
 		for ( let child of this.#values ) {
-			if (compare_keys(child.key, key, strict)) out.push( child );
+			if (child.key.toLowerCase() === key) out.push( child );
 		}
 
 		return out;
 	}
 
 	/** Retrieves a set within this set. This function throws an error when no set is found unless a default value is defined. */
-	dir( key: string, strict?: boolean ): KeyVSet;
-	dir<T extends any>( key: string, strict?: boolean, default_value?: T ): KeyVSet|T;
-	dir<T extends any>( key: string, strict: boolean=this.strict, default_value?: T ): KeyVSet|T {
-		if (!strict) key = key.toLowerCase();
+	dir( key: string ): KeyVSet;
+	dir<T extends any>( key: string, default_value?: T ): KeyVSet|T;
+	dir<T extends any>( key: string, default_value?: T ): KeyVSet|T {
+		key = key.toLowerCase();
 
 		let i: number;
 		for ( i=this.#values.length-1; i>-1; i-- ) {
 			const child = this.#values[i];
-			if (child instanceof KeyVSet && compare_keys(child.key, key, strict)) return child;
+			if (child instanceof KeyVSet && child.key.toLowerCase() === key) return child;
 		}
 
 		if (default_value === undefined && i === -1) throw(`Subset with key "${key}" does not exist in set!`);
 		return default_value;
 	}
 
-	dirs( key?: string, strict: boolean=this.strict ): KeyVSet[] {
-		if (!strict) key = key.toLowerCase();
+	dirs( key?: string ): KeyVSet[] {
+		if (key) key = key.toLowerCase();
 
 		const out = [];
 		for ( let child of this.#values ) {
-			if (child instanceof KeyVSet && (key == null || compare_keys(child.key, key, strict))) out.push(child);
+			if (child instanceof KeyVSet && (key == null || child.key.toLowerCase() === key)) out.push(child);
 		}
 
 		return out;
 	}
 
-	pairs( key?: string, strict: boolean=this.strict ): KeyV[] {
+	pairs( key?: string ): KeyV[] {
+		if (key) key = key.toLowerCase();
+
 		const out = [];
 		for ( let child of this.#values ) {
-			if (child instanceof KeyV && (key == null || compare_keys(child.key, key, strict))) out.push(child);
+			if (child instanceof KeyV && (key == null || child.key.toLowerCase() === key)) out.push(child);
 		}
+
 		return out;
 	}
 
 	/** Retrieves a pair within this set. This function throws an error when no pair is found unless a default value is defined. */
-	pair( key: string, strict?: boolean ): KeyV;
-	pair<T extends any>( key: string, strict?: boolean, default_value?: T ): KeyV|T;
-	pair<T extends any>( key: string, strict: boolean=this.strict, default_value?: T ): KeyV|T {
-		if (!strict) key = key.toLowerCase();
+	pair( key: string ): KeyV;
+	pair<T extends any>( key: string, default_value?: T ): KeyV|T;
+	pair<T extends any>( key: string, default_value?: T ): KeyV|T {
+		key = key.toLowerCase();
 
 		let i: number;
 		for ( i=this.#values.length-1; i>-1; i-- ) {
 			const child = this.#values[i];
-			if (child instanceof KeyV && compare_keys(child.key, key, strict)) return child;
+			if (child instanceof KeyV && child.key.toLowerCase() === key) return child;
 		}
 
 		if (default_value === undefined && i === -1) throw(`Pair with key "${key}" does not exist in set!`);
@@ -135,10 +132,10 @@ class KeyVSetCommon {
 	}
 
 	/** Retrieves the value of a pair within this set. This function throws an error when no pair is found unless a default value is defined. */
-	value( key: string, strict?: boolean ): string;
-	value<T extends any>( key: string, strict?: boolean, default_value?: T ): string|T
-	value<T extends any>( key: string, strict: boolean=this.strict, default_value?: T ): string|T {
-		return this.pair( key, strict, default_value === undefined ? undefined : null )?.value ?? default_value;
+	value( key: string ): string;
+	value<T extends any>( key: string, default_value?: T ): string|T
+	value<T extends any>( key: string, default_value?: T ): string|T {
+		return this.pair( key, default_value === undefined ? undefined : null )?.value ?? default_value;
 	}
 
 	/** Deletes a child object if the key is matched. Returns true if a child was deleted. If fast is explicitly enabled, the keys will be reordered to make the deletion O(1). */
