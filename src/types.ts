@@ -54,13 +54,12 @@ class KeyVSetCommon {
 	any<T extends any>( key: string, default_value?: T ): KeyVChild|T {
 		key = key.toLowerCase();
 
-		let i: number;
-		for ( i=this.#values.length-1; i>-1; i-- ) {
+		for ( let i=this.#values.length-1; i>-1; i-- ) {
 			const child = this.#values[i];
 			if (child.key.toLowerCase() === key) return child;
 		}
 
-		if (default_value === undefined && i === -1) throw(`Child with key "${key}" does not exist in set!`);
+		if (default_value === undefined) throw(`Child with key "${key}" does not exist in set!`);
 		return default_value;
 	}
 
@@ -70,7 +69,7 @@ class KeyVSetCommon {
 		key = key.toLowerCase();
 
 		const out = [];
-		for ( let child of this.#values ) {
+		for ( const child of this.#values ) {
 			if (child.key.toLowerCase() === key) out.push( child );
 		}
 
@@ -83,13 +82,12 @@ class KeyVSetCommon {
 	dir<T extends any>( key: string, default_value?: T ): KeyVSet|T {
 		key = key.toLowerCase();
 
-		let i: number;
-		for ( i=this.#values.length-1; i>-1; i-- ) {
+		for ( let i=this.#values.length-1; i>-1; i-- ) {
 			const child = this.#values[i];
 			if (child instanceof KeyVSet && child.key.toLowerCase() === key) return child;
 		}
 
-		if (default_value === undefined && i === -1) throw(`Subset with key "${key}" does not exist in set!`);
+		if (default_value === undefined) throw(`Subset with key "${key}" does not exist in set!`);
 		return default_value;
 	}
 
@@ -97,19 +95,8 @@ class KeyVSetCommon {
 		if (key) key = key.toLowerCase();
 
 		const out = [];
-		for ( let child of this.#values ) {
+		for ( const child of this.#values ) {
 			if (child instanceof KeyVSet && (key == null || child.key.toLowerCase() === key)) out.push(child);
-		}
-
-		return out;
-	}
-
-	pairs( key?: string ): KeyV[] {
-		if (key) key = key.toLowerCase();
-
-		const out = [];
-		for ( let child of this.#values ) {
-			if (child instanceof KeyV && (key == null || child.key.toLowerCase() === key)) out.push(child);
 		}
 
 		return out;
@@ -121,14 +108,24 @@ class KeyVSetCommon {
 	pair<T extends any>( key: string, default_value?: T ): KeyV|T {
 		key = key.toLowerCase();
 
-		let i: number;
-		for ( i=this.#values.length-1; i>-1; i-- ) {
+		for ( let i=this.#values.length-1; i>-1; i-- ) {
 			const child = this.#values[i];
 			if (child instanceof KeyV && child.key.toLowerCase() === key) return child;
 		}
 
-		if (default_value === undefined && i === -1) throw(`Pair with key "${key}" does not exist in set!`);
+		if (default_value === undefined) throw(`Pair with key "${key}" does not exist in set!`);
 		return default_value;
+	}
+
+	pairs( key?: string ): KeyV[] {
+		if (key) key = key.toLowerCase();
+
+		const out = [];
+		for ( const child of this.#values ) {
+			if (child instanceof KeyV && (key == null || child.key.toLowerCase() === key)) out.push(child);
+		}
+
+		return out;
 	}
 
 	/** Retrieves the value of a pair within this set. This function throws an error when no pair is found unless a default value is defined. */
