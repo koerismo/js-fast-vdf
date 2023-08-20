@@ -1,6 +1,12 @@
 # fast-vdf
 Your average javascript KeyValues processing library, as fast as parsable!
 
+# Installation
+```
+npm i fast-vdf
+```
+
+# Usage
 ```ts
 import vdf from 'fast-vdf';
 

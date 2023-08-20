@@ -5,6 +5,7 @@
 	"license": "ISC",
 	"author": "Koerismo",
 	"type": "module",
+	"repository": { "url": "github:koerismo/js-fast-vdf" },
 
 	"main": "dist/index.js",
 	"files": [
