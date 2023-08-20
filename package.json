@@ -1,6 +1,6 @@
 {
 	"name": "fast-vdf",
-	"description": "Your average Javascript KeyValues processing library, but fast!",
+	"description": "Your average javascript KeyValues processing library, as fast as parsable!",
 	"version": "1.0.2",
 	"license": "ISC",
 	"author": "Koerismo",
