@@ -102,6 +102,6 @@ interface ParseOptions {
     on_key:   (key: string, value: string, query?: string) => void;
     on_enter: (key: string) => void;
     on_exit:  () => void;
-	escapes:  boolean;
+    escapes:  boolean;
 }
 ```
