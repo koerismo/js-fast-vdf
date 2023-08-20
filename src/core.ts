@@ -1,7 +1,8 @@
 export interface ParseOptions {
-	on_key:		(key:string, value:string, query?:string) => void,
-	on_enter:	(key:string) => void,
-	on_exit:	() => void,
+	on_key:		(key:string, value:string, query?:string) => void;
+	on_enter:	(key:string) => void;
+	on_exit:	() => void;
+	escapes?:	boolean;
 }
 
 const C_QUOTE  = 34,	// "
@@ -19,23 +20,24 @@ function is_plain( code: number ) {
 
 function is_term( code: number ) {
 	return (
-		code == 32 || code == 9 || code == C_LN ||
+		code == 32 || code == 9 || code == 13 || code == C_LN ||
 		code == C_BOPEN || code == C_BCLOSE );
 }
 
 const TE = new TextEncoder();
 export function parse( text:string, options:ParseOptions ) {
-	const data			= TE.encode( text );
+	const no_escapes    = !(options.escapes ?? true);
+	const data          = TE.encode( text );
 	const length        = data.length;
-	let key: string		= null;
-	let value: string	= null;
+	let key: string	    = null;
+	let value: string   = null;
 
 	for ( let i=0; i<data.length; i++ ) {
 		const c = data[i];
-		const escaped = data[i-1] === C_ESCAPE;
+		const escaped = !no_escapes && data[i-1] === C_ESCAPE;
 
 		// Spacing ( tab, space, \r, \n )
-		if ( c === 9 || c === 32 || c === 13 || c === C_LN ) continue;
+		if ( c === 32 || c === 9 || c === 13 || c === C_LN ) continue;
 
 		// Start bracket
 		if ( c === C_BOPEN && !escaped ) {
@@ -61,7 +63,7 @@ export function parse( text:string, options:ParseOptions ) {
 			while (true) {
 				i = data.indexOf(C_QUOTE, i+1);
 				if (i === -1) throw( `Encountered unterminated quote starting at ${start-1}!` );
-				if (data[i-1] !== C_ESCAPE) break;
+				if (no_escapes || data[i-1] !== C_ESCAPE) break;
 			}
 
 			const chunk = text.slice(start, i);
@@ -101,7 +103,7 @@ export function parse( text:string, options:ParseOptions ) {
 
 			while (i < length) {
 				i++;
-				if ( is_term(data[i]) && data[i-1] !== C_ESCAPE ) break;
+				if ( is_term(data[i]) && (no_escapes || data[i-1] !== C_ESCAPE) ) break;
 			}
 
 			const chunk = text.slice(start, i);

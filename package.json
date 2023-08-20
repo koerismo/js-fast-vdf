@@ -1,5 +1,5 @@
 {
-	"name": "js-fast-vdf",
+	"name": "fast-vdf",
 	"description": "Your average Javascript KeyValues processing library, but fast!",
 	"version": "1.0.2",
 	"license": "ISC",
