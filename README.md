@@ -8,7 +8,7 @@ npm i fast-vdf
 
 # Usage
 ```ts
-import { vdf } from 'fast-vdf';
+import { vdf, KeyV, KeyVSet } from 'fast-vdf';
 
 const root = vdf.parse(`
 "key" "value1"
@@ -64,6 +64,19 @@ root.dump({
 
 
 # API
+
+## Imports
+Note: This package, while written as an ES module, is compiled to CommonJS for backwards-compatibility. As such, the default export is emulated by including the contents of the `vdf` object in the main module.
+
+```ts
+import vdf from 'fast-vdf';             // vdf.parse(), vdf.json(), vdf.KeyV, vdf.KeyVSet, ...
+import { vdf } from 'fast-vdf';         // vdf.parse(), vdf.json(), KeyV, KeyVSet, ...
+import { parse } from 'fast-vdf';       // parse(), json(), KeyV, KeyVSet, ...
+
+const vdf = require('fast-vdf');        // vdf.parse(), vdf.json(), vdf.KeyV, vdf.KeyVSet, ...
+const { vdf } = require('fast-vdf');    // vdf.parse(), vdf.json(), KeyV, KeyVSet, ...
+const { parse } = require('fast-vdf');  // parse(), json(), KeyV, KeyVSet, ...
+```
 
 ## Functions
 ### vdf.**parse**(data: string, options?: SharedParseOptions): KeyVRoot
