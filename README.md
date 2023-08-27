@@ -49,7 +49,7 @@ root.factory()
 // The above code is equivalent to the below:
 
 root.add(new KeyV('hello', 'world'));
-root.add(new KeyVSet('set').add('subkey', 'value'));
+root.add(new KeyVSet('set').add(new KeyV('subkey', 'value')));
 root.add(new KeyV('hello2', 'world'));
 
 
