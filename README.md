@@ -8,7 +8,7 @@ npm i fast-vdf
 
 # Usage
 ```ts
-import vdf from 'fast-vdf';
+import { vdf } from 'fast-vdf';
 
 const root = vdf.parse(`
 "key" "value1"

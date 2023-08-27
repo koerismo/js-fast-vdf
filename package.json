@@ -4,7 +4,7 @@
 	"version": "1.0.3",
 	"license": "ISC",
 	"author": "Koerismo",
-	"type": "module",
+	"type": "commonjs",
 	"repository": { "url": "github:koerismo/js-fast-vdf" },
 
 	"main": "dist/index.js",
