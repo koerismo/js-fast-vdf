@@ -59,7 +59,7 @@ class KeyVSetCommon {
 			if (child.key.toLowerCase() === key) return child;
 		}
 
-		if (default_value === undefined) throw(`Child with key "${key}" does not exist in set!`);
+		if (default_value === undefined) throw new Error(`Child with key "${key}" does not exist in set!`);
 		return default_value;
 	}
 
@@ -87,7 +87,7 @@ class KeyVSetCommon {
 			if (child instanceof KeyVSet && child.key.toLowerCase() === key) return child;
 		}
 
-		if (default_value === undefined) throw(`Subset with key "${key}" does not exist in set!`);
+		if (default_value === undefined) throw new Error(`Subset with key "${key}" does not exist in set!`);
 		return default_value;
 	}
 
@@ -113,7 +113,7 @@ class KeyVSetCommon {
 			if (child instanceof KeyV && child.key.toLowerCase() === key) return child;
 		}
 
-		if (default_value === undefined) throw(`Pair with key "${key}" does not exist in set!`);
+		if (default_value === undefined) throw new Error(`Pair with key "${key}" does not exist in set!`);
 		return default_value;
 	}
 
@@ -238,7 +238,7 @@ export class KeyV {
 			+ escape(this.key, format.quote)
 			+ ' '
 			+ escape(this.value, format.quote)
-			+ '\n'
+			+ ( this.query === null ? '\n' : ' [' + this.query + ']\n' )
 		);
 	}
 }
@@ -269,7 +269,7 @@ class KeyVFactory {
 	/** Goes back the specified number of levels. */
 	back( levels: number=1 ): this {
 		for ( let i=0; i<levels; i++ ) {
-			if (this.source.parent === null) throw('Attempted to navigate backwards past root set!');
+			if (this.source.parent === null) throw new Error('Attempted to navigate backwards past root set!');
 			this.source = this.source.parent;
 		};
 		return this;

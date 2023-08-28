@@ -1,11 +1,11 @@
-import { vdf, KeyVRoot, KeyVSet, KeyV } from '../dist/index.js';
+import { KeyVRoot } from '../dist/index.js';
 import assert from 'node:assert';
 
 const test_indent = new KeyVRoot().factory()
 	.pair('abc', 'def')
 	.dir('a b c')
 		.dir('d e f')
-			.pair('xyz', '123')
+			.pair('xyz', '123', 'EASY')
 			.back()
 		.back()
 	.exit();
@@ -29,7 +29,7 @@ assert.strictEqual(dumpy,
 {
 > "d e f"
 > {
-> > "xyz" "123"
+> > "xyz" "123" [EASY]
 > }
 }
 `);
