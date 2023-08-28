@@ -1,7 +1,7 @@
 {
 	"name": "fast-vdf",
 	"description": "Your average javascript KeyValues processing library, as fast as parsable!",
-	"version": "1.0.5",
+	"version": "1.0.6",
 	"license": "ISC",
 	"author": "Koerismo",
 	"type": "commonjs",
@@ -9,18 +9,17 @@
 	"keywords": [ "vdf", "keyvalues", "valve" ],
 
 	"main": "dist/index.js",
-	"files": [
-		"dist/"
-	],
+	"files": [ "dist/" ],
 
 	"scripts": {
 		"build": "tsc",
-		"test": "mocha"
+		"test": "c8 mocha"
 	},
 
 	"devDependencies": {
+		"@types/node": "^20.2.5",
 		"mocha": "^10.2.0",
-		"typescript": "^5.0.4",
-		"@types/node": "^20.2.5"
+		"c8": "^8.0.1",
+		"typescript": "^5.0.4"
 	}
 }

@@ -34,7 +34,7 @@ describe('Parser', () => {
 	it('Parses basic keyvalues', () => {
 		assert.deepStrictEqual(
 			vdf.parse(`
-				"hello" "world" [QUERY]
+				"hello" "world" [QUERY] // Ignore "this" [comment]
 				"spaced key" "spaced value"
 				hello world
 				"[QUERYISH_KEY]" unquoted.value`).all(),
@@ -45,6 +45,24 @@ describe('Parser', () => {
 				.add(new KeyV('[QUERYISH_KEY]', 'unquoted.value'))
 				.all()
 		);
+	});
+
+	it('Parses multiline comments when specified', () => {
+		assert.deepStrictEqual(vdf.parse(`
+				"hello" "world"
+				"key" /* multiline
+				comments are very acceptable */
+				"value"`).all(),
+			new KeyVRoot()
+				.add(new KeyV('hello', 'world'))
+				.add(new KeyV('key', 'value'))
+				.all());
+
+		assert.throws(() => vdf.parse(`
+			"hello" "world"
+			"key" /* multiline
+			comments are never acceptable */
+			"value"`, { multilines: false }));
 	});
 
 	it('Parses nested structures', () => {
@@ -69,6 +87,32 @@ describe('Parser', () => {
 						.add(new KeyV('key6', 'value3'))
 					)
 				).all()
+		);
+	});
+
+	it('Parses to JSON', () => {
+		assert.deepStrictEqual(
+			vdf.json(`
+			key1 {
+				key2 value1
+				key3 {
+					key4 {
+						key5 value2
+					}
+					key6 value3
+				}
+			}`),
+			{
+				'key1': {
+					'key2': 'value1',
+					'key3': {
+						'key4': {
+							'key5': 'value2'
+						},
+						'key6': 'value3'
+					}
+				}
+			}
 		);
 	});
 });

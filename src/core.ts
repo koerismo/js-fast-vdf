@@ -2,7 +2,8 @@ export interface ParseOptions {
 	on_key:		(key:string, value:string, query?:string) => void;
 	on_enter:	(key:string) => void;
 	on_exit:	() => void;
-	escapes?:	boolean;
+	escapes:	boolean;
+	multilines:	boolean;
 }
 
 const C_QUOTE  = 34,	// "
@@ -25,12 +26,14 @@ function is_term( code: number ) {
 }
 
 const TE = new TextEncoder();
-export function parse( text:string, options:ParseOptions ) {
-	const no_escapes    = !(options.escapes ?? true);
-	const data          = TE.encode( text );
-	const length        = data.length;
-	let key: string	    = null;
-	let value: string   = null;
+export function parse( text: string, options: ParseOptions ) {
+	const no_escapes	= !options.escapes;
+	const multilines	= options.multilines;
+
+	const data			= TE.encode( text );
+	const length		= data.length;
+	let key: string		= null;
+	let value: string	= null;
 
 	for ( let i=0; i<data.length; i++ ) {
 		const c = data[i];
@@ -85,7 +88,7 @@ export function parse( text:string, options:ParseOptions ) {
 		}
 
 		// Multi-line comment ( /* )
-		if ( c === 47 && data[i+1] === 42 ) {
+		if ( multilines && c === 47 && data[i+1] === 42 ) {
 			const start = i;
 			while (true) {
 				i = data.indexOf(42, i+1);
