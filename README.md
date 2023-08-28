@@ -111,16 +111,18 @@ The internal API used by the parse.xyz functions.
 ### SharedParseOptions
 ```ts
 interface SharedParseOptions {
-    escapes: boolean;
+    escapes?: boolean;
+    multilines?: boolean;
 }
 ```
 
 ### ParseOptions
 ```ts
 interface ParseOptions {
-    on_key:   (key: string, value: string, query?: string) => void;
-    on_enter: (key: string) => void;
-    on_exit:  () => void;
-    escapes:  boolean;
+    on_key:     (key: string, value: string, query?: string) => void;
+    on_enter:   (key: string) => void;
+    on_exit:    () => void;
+    escapes:    boolean;
+    multilines: boolean;
 }
 ```
