@@ -1,3 +1,5 @@
+import { ParseError } from './types.js';
+
 export interface ParseOptions {
 	on_key:		(key:string, value:string, query?:string) => void;
 	on_enter:	(key:string) => void;
@@ -44,7 +46,7 @@ export function parse( text: string, options: ParseOptions ) {
 
 		// Start bracket
 		if ( c === C_BOPEN && !escaped ) {
-			if ( key === null ) throw new Error( `Attempted to enter block without key at ${i}!` );
+			if ( key === null ) throw new ParseError( `Attempted to enter block without key at ${i}!` );
 			options.on_enter( key );
 			key = null;
 			continue;
@@ -52,7 +54,7 @@ export function parse( text: string, options: ParseOptions ) {
 
 		// End bracket
 		if ( c === C_BCLOSE && !escaped ) {
-			if ( key !== null && value === null ) throw new Error( 'Encountered unpaired key!' );
+			if ( key !== null && value === null ) throw new ParseError( 'Encountered unpaired key!' );
 			else if ( value !== null ) options.on_key( key, value );
 			key = value = null;
 			options.on_exit();
@@ -65,7 +67,7 @@ export function parse( text: string, options: ParseOptions ) {
 
 			while (true) {
 				i = data.indexOf(C_QUOTE, i+1);
-				if (i === -1) throw new Error( `Encountered unterminated quote starting at ${start-1}!` );
+				if (i === -1) throw new ParseError( `Encountered unterminated quote starting at ${start-1}!` );
 				if (no_escapes || data[i-1] !== C_ESCAPE) break;
 			}
 
@@ -92,7 +94,7 @@ export function parse( text: string, options: ParseOptions ) {
 			const start = i;
 			while (true) {
 				i = data.indexOf(42, i+1);
-				if ( i === -1 ) throw new Error( `Encountered unterminated multiline comment starting at ${start}!` );
+				if ( i === -1 ) throw new ParseError( `Encountered unterminated multiline comment starting at ${start}!` );
 				if ( data[i+1] === 47 ) break;
 			}
 
@@ -126,7 +128,7 @@ export function parse( text: string, options: ParseOptions ) {
 		}
 	}
 
-	if ( key !== null && value === null ) throw( 'Encountered unpaired key!' );
+	if ( key !== null && value === null ) throw new ParseError( 'Encountered unpaired key!' );
 	else if ( value !== null ) options.on_key( key, value );
 	return;
 }

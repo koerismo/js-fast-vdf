@@ -1,6 +1,6 @@
 import * as vdf from './parse.js';
 import * as core from './core.js';
-import { KeyV, KeyVSet, KeyVRoot } from './types.js';
+import { KeyV, KeyVSet, KeyVRoot, ParseError } from './types.js';
 
 const parse = vdf.parse, json = vdf.json;
 
@@ -16,4 +16,6 @@ export {
 	KeyV,
 	KeyVSet,
 	KeyVRoot,
+
+	ParseError,
 }

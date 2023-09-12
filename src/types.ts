@@ -14,6 +14,10 @@ const DumpFormatDefaults: DumpFormatOptions = {
 	quote:   'always',
 }
 
+export class ParseError extends Error {
+	name = 'ParseError';
+}
+
 // TODO: Implement unescaping strings on import.
 // const RE_UNESCAPE = /\\(.)/g;
 // function unescape(value: string): string {

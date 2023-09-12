@@ -1,5 +1,5 @@
 import { parse as cparse } from './core.js';
-import { KeyV,  KeyVRoot,  KeyVSet  } from './types.js';
+import { KeyV, KeyVRoot, KeyVSet, ParseError } from './types.js';
 
 interface SharedParseOptions {
 	escapes?: boolean;
@@ -17,7 +17,7 @@ export function parse( data:string, options?: SharedParseOptions ): KeyVRoot {
 			out.add(out = new KeyVSet( key ));
 		},
 		on_exit() {
-			if ( !out.parent ) throw( 'Attempted to exit past root keyvalue!' );
+			if ( !out.parent ) throw new ParseError( 'Attempted to exit past root keyvalue!' );
 			out = out.parent;
 		},
 		on_key(key, value, query) {
@@ -40,6 +40,7 @@ export function json( data:string, env:Object={}, options?: SharedParseOptions )
 		},
 		on_exit() {
 			const ref = out;
+			if ( !out.__parent__ ) throw new ParseError( 'Attempted to exit past root keyvalue!' );
 			out = out.__parent__;
 			delete ref.__parent__;
 		},
