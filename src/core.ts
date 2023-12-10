@@ -39,7 +39,6 @@ function is_term( code: number ) {
 const TE = new TextEncoder();
 export function parse( text: string, options: ParseOptions ) {
 	const no_escapes	= !options.escapes;
-	const multilines	= options.multilines;
 
 	const data			= TE.encode( text );
 	const length		= data.length;
@@ -99,7 +98,7 @@ export function parse( text: string, options: ParseOptions ) {
 		}
 
 		// Multi-line comment ( /* )
-		if ( multilines && c === 47 && data[i+1] === 42 ) {
+		if ( options.multilines && c === 47 && data[i+1] === 42 ) {
 			const start = i;
 			while (true) {
 				i = data.indexOf(42, i+1);
