@@ -36,12 +36,12 @@ describe('Parser', () => {
 			vdf.parse(`
 				"hello" "world" [QUERY] // Ignore "this" [comment]
 				"spaced key" "spaced value"
-				hello world
+				hello 123
 				"[QUERYISH_KEY]" unquoted.value`).all(),
 			new KeyVRoot()
 				.add(new KeyV('hello', 'world', 'QUERY'))
 				.add(new KeyV('spaced key', 'spaced value'))
-				.add(new KeyV('hello', 'world'))
+				.add(new KeyV('hello', 123))
 				.add(new KeyV('[QUERYISH_KEY]', 'unquoted.value'))
 				.all()
 		);

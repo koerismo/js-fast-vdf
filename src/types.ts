@@ -30,7 +30,9 @@ function needs_quotes(value: string): boolean {
 	return false;
 }
 
-function escape(value: string, quote: 'auto'|'always') {
+function escape(value: string|number|boolean, quote: 'auto'|'always'): string {
+	if (typeof value !== 'string') return value.toString();
+
 	if (quote === 'always' || needs_quotes(value)) {
 		const escaped = value
 			.replaceAll('\\', '\\\\')
@@ -225,11 +227,11 @@ export class KeyVRoot extends KeyVSetCommon {}
 export class KeyV {
 
 	key:	string;
-	value:	string;
+	value:	string|number|boolean;
 	query:	string|null;
 	parent:	KeyVSetCommon|null;
 
-	constructor( key: string, value: string, query: string|null=null ) {
+	constructor( key: string, value: string|number|boolean, query: string|null=null ) {
 		this.key	= key;
 		this.value	= value;
 		this.query	= query;
@@ -265,7 +267,7 @@ class KeyVFactory {
 	}
 
 	/** Creates a new pair. */
-	pair( key: string, value: string, query: string|null=null ): this {
+	pair( key: string, value: string|number|boolean, query: string|null=null ): this {
 		this.source.add(new KeyV(key, value, query));
 		return this;
 	}

@@ -1,11 +1,12 @@
 import { ParseError } from './types.js';
 
 export interface ParseOptions {
-	on_key:		(key:string, value:string, query?:string) => void;
+	on_key:		(key:string, value:string|number|boolean, query?:string) => void;
 	on_enter:	(key:string) => void;
 	on_exit:	() => void;
 	escapes:	boolean;
 	multilines:	boolean;
+	types:      boolean;
 }
 
 const C_QUOTE  = 34,	// "
@@ -19,6 +20,14 @@ function is_plain( code: number ) {
 		( code > 32 && code < 92 ) ||
 		( code > 92 && code < 125 )
 	);
+}
+
+function parse_value( value: string ): string|number|boolean {
+	if (value === 'true') return true;
+	if (value === 'false') return false;
+	const num = +value;
+	if (isNaN(num)) return value;
+	return num;
 }
 
 function is_term( code: number ) {
@@ -35,7 +44,7 @@ export function parse( text: string, options: ParseOptions ) {
 	const data			= TE.encode( text );
 	const length		= data.length;
 	let key: string		= null;
-	let value: string	= null;
+	let value: string|number|boolean = null;
 
 	for ( let i=0; i<data.length; i++ ) {
 		const c = data[i];
@@ -113,7 +122,7 @@ export function parse( text: string, options: ParseOptions ) {
 
 			const chunk = text.slice(start, i);
 			if ( key === null )			key = chunk;
-			else if ( value === null )	value = chunk;
+			else if ( value === null )	value = options.types ? parse_value(chunk) : chunk;
 			else {
 				if ( data[start] === 91 && data[i-1] === 93 ) {
 					options.on_key( key, value, text.slice(start+1, i-1) );
