@@ -225,11 +225,11 @@ export class KeyVRoot extends KeyVSetCommon {}
 export class KeyV {
 
 	key:	string;
-	value:	string;
+	value:	string|number|boolean;
 	query:	string|null;
 	parent:	KeyVSetCommon|null;
 
-	constructor( key: string, value: string, query: string|null=null ) {
+	constructor( key: string, value: string|number|boolean, query: string|null=null ) {
 		this.key	= key;
 		this.value	= value;
 		this.query	= query;
@@ -241,7 +241,7 @@ export class KeyV {
 			indent
 			+ escape(this.key, format.quote)
 			+ ' '
-			+ escape(this.value, format.quote)
+			+ escape(this.value.toString(), format.quote)
 			+ ( this.query === null ? '\n' : ' [' + this.query + ']\n' )
 		);
 	}

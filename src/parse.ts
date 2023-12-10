@@ -4,6 +4,7 @@ import { KeyV, KeyVRoot, KeyVSet, ParseError } from './types.js';
 interface SharedParseOptions {
 	escapes?: boolean;
 	multilines?: boolean;
+	types?: boolean;
 }
 
 /** Parses data into a tree of objects.
@@ -25,6 +26,7 @@ export function parse( data:string, options?: SharedParseOptions ): KeyVRoot {
 		},
 		escapes: options?.escapes ?? true,
 		multilines: options?.multilines ?? true,
+		types: options?.types ?? true,
 	});
 
 	return out;
@@ -50,6 +52,7 @@ export function json( data:string, env:Object={}, options?: SharedParseOptions )
 		},
 		escapes: options?.escapes ?? true,
 		multilines: options?.multilines ?? true,
+		types: options?.types ?? true,
 	});
 
 	delete out.__parent__;
