@@ -30,7 +30,9 @@ function needs_quotes(value: string): boolean {
 	return false;
 }
 
-function escape(value: string, quote: 'auto'|'always') {
+function escape(value: string|number|boolean, quote: 'auto'|'always'): string {
+	if (typeof value !== 'string') return value.toString();
+
 	if (quote === 'always' || needs_quotes(value)) {
 		const escaped = value
 			.replaceAll('\\', '\\\\')
@@ -241,7 +243,7 @@ export class KeyV {
 			indent
 			+ escape(this.key, format.quote)
 			+ ' '
-			+ escape(this.value.toString(), format.quote)
+			+ escape(this.value, format.quote)
 			+ ( this.query === null ? '\n' : ' [' + this.query + ']\n' )
 		);
 	}

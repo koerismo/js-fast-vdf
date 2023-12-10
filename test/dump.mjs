@@ -16,6 +16,7 @@ const test_escape = new KeyVRoot().factory()
 	.pair('a"b"c', 'def\\')
 	.dir('dir')
 		.pair('xyz', '[123]')
+		.pair('123', 123)
 		.back()
 	.exit();
 
@@ -45,6 +46,7 @@ assert.strictEqual(dumpy,
 "dir"
 {
 	"xyz" "[123]"
+	"123" 123
 }
 `);
 });
@@ -59,6 +61,7 @@ a\\"b\\"c def\\\\
 dir
 {
 	xyz "[123]"
+	123 123
 }
 `);
 });
