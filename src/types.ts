@@ -267,7 +267,7 @@ class KeyVFactory {
 	}
 
 	/** Creates a new pair. */
-	pair( key: string, value: string, query: string|null=null ): this {
+	pair( key: string, value: string|number|boolean, query: string|null=null ): this {
 		this.source.add(new KeyV(key, value, query));
 		return this;
 	}
