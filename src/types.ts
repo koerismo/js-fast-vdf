@@ -1,5 +1,9 @@
 export type KeyVChild = KeyV|KeyVSet;
 
+export type ValueType = string|number|boolean;
+type ValueString = 'string'|'number'|'boolean';
+type ValueTypeMap = {'string': string, 'number': number, 'boolean': boolean};
+
 export interface DumpFormatOptions {
 	indent:  string,
 	quote:   'always'|'auto'
@@ -30,7 +34,7 @@ function needs_quotes(value: string): boolean {
 	return false;
 }
 
-function escape(value: string|number|boolean, quote: 'auto'|'always'): string {
+function escape(value: ValueType, quote: 'auto'|'always'): string {
 	if (typeof value !== 'string') return value.toString();
 
 	if (quote === 'always' || needs_quotes(value)) {
@@ -109,9 +113,9 @@ class KeyVSetCommon {
 	}
 
 	/** Retrieves a pair within this set. This function throws an error when no pair is found unless a default value is defined. */
-	pair( key: string ): KeyV;
-	pair<T extends any>( key: string, default_value?: T ): KeyV|T;
-	pair<T extends any>( key: string, default_value?: T ): KeyV|T {
+	pair<D extends undefined>( key: string, default_value?: D ): KeyV|never;
+	pair<D extends unknown>( key: string, default_value?: D ): KeyV|D;
+	pair<D extends unknown>( key: string, default_value?: D ): KeyV|D|never {
 		key = key.toLowerCase();
 
 		for ( let i=this.#values.length-1; i>-1; i-- ) {
@@ -135,10 +139,13 @@ class KeyVSetCommon {
 	}
 
 	/** Retrieves the value of a pair within this set. This function throws an error when no pair is found unless a default value is defined. */
-	value( key: string ): string;
-	value<T extends any>( key: string, default_value?: T ): string|T
-	value<T extends any>( key: string, default_value?: T ): string|T {
-		return this.pair( key, default_value === undefined ? undefined : null )?.value ?? default_value;
+	value<D extends undefined, T extends ValueString>( key: string, default_value?: D, type?: T ): ValueTypeMap[T]|never;
+	value<D extends unknown, T extends ValueString>( key: string, default_value?: D, type?: T ): ValueTypeMap[T]|D;
+	value<D extends unknown, T extends ValueString>( key: string, default_value?: D, type?: T ): ValueTypeMap[T]|D|never {
+		const pair = this.pair(key, default_value === undefined ? undefined : null);
+		if (pair === null) return default_value as D;
+		if (type !== undefined && typeof pair.value !== type) throw new Error(`Pair with key "${pair.key}" has value type ${typeof pair.value}! (Expected ${type})`);
+		return pair.value as ValueTypeMap[T];
 	}
 
 	/** Deletes a child object if the key is matched. Returns true if a child was deleted. If fast is explicitly enabled, the keys will be reordered to make the deletion O(1). */
@@ -227,11 +234,11 @@ export class KeyVRoot extends KeyVSetCommon {}
 export class KeyV {
 
 	key:	string;
-	value:	string|number|boolean;
+	value:	ValueType;
 	query:	string|null;
 	parent:	KeyVSetCommon|null;
 
-	constructor( key: string, value: string|number|boolean, query: string|null=null ) {
+	constructor( key: string, value:ValueType, query: string|null=null ) {
 		this.key	= key;
 		this.value	= value;
 		this.query	= query;
@@ -267,7 +274,7 @@ class KeyVFactory {
 	}
 
 	/** Creates a new pair. */
-	pair( key: string, value: string|number|boolean, query: string|null=null ): this {
+	pair( key: string, value: ValueType, query: string|null=null ): this {
 		this.source.add(new KeyV(key, value, query));
 		return this;
 	}

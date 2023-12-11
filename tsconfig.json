@@ -6,7 +6,8 @@
 		"outDir": "dist",
 		"lib": [ "DOM", "ES2021" ],
 		"declaration": true,
-		"alwaysStrict": true
+		"alwaysStrict": true,
+		"strict": true
 	},
 	"include": [ "src/**/*" ]
 }

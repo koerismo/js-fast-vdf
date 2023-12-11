@@ -1,4 +1,4 @@
-import { ParseError } from './types.js';
+import { ParseError, ValueType } from './types.js';
 
 export interface ParseOptions {
 	on_key:		(key:string, value:string|number|boolean, query?:string) => void;
@@ -39,11 +39,11 @@ function is_term( code: number ) {
 const TE = new TextEncoder();
 export function parse( text: string, options: ParseOptions ) {
 	const no_escapes	= !options.escapes;
-
 	const data			= TE.encode( text );
 	const length		= data.length;
-	let key: string		= null;
-	let value: string|number|boolean = null;
+
+	let key: string|null = null;
+	let value: ValueType|null = null;
 
 	for ( let i=0; i<data.length; i++ ) {
 		const c = data[i];
@@ -63,7 +63,7 @@ export function parse( text: string, options: ParseOptions ) {
 		// End bracket
 		if ( c === C_BCLOSE && !escaped ) {
 			if ( key !== null && value === null ) throw new ParseError( 'Encountered unpaired key!' );
-			else if ( value !== null ) options.on_key( key, value );
+			else if ( value !== null ) options.on_key( key as string, value );
 			key = value = null;
 			options.on_exit();
 			continue;
@@ -137,6 +137,6 @@ export function parse( text: string, options: ParseOptions ) {
 	}
 
 	if ( key !== null && value === null ) throw new ParseError( 'Encountered unpaired key!' );
-	else if ( value !== null ) options.on_key( key, value );
+	else if ( value !== null ) options.on_key( key as string, value );
 	return;
 }
