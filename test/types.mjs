@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { vdf, KeyVRoot, KeyVSet, KeyV } from '../dist/index.js';
 
-const input = `"123" "456"
+const input = `123 "456"
 123 456
 true "true"
 false false

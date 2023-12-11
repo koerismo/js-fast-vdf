@@ -38,7 +38,7 @@ assert.strictEqual(dumpy,
 
 
 it('Escapes quoted values', () => {
-const dumpy = test_escape.dump({ quote: 'always', indent: '\t' });
+const dumpy = test_escape.dump({ quote: 'always', indent: '\t', escapes: true });
 assert.strictEqual(dumpy,
 `"abc" "def"
 "a b c" "d e f"
@@ -53,7 +53,7 @@ assert.strictEqual(dumpy,
 
 
 it('Escapes unquoted values', () => {
-const dumpy = test_escape.dump({ quote: 'auto', indent: '\t' });
+const dumpy = test_escape.dump({ quote: 'auto', indent: '\t', escapes: true });
 assert.strictEqual(dumpy,
 `abc def
 "a b c" "d e f"

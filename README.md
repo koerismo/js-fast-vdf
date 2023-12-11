@@ -58,7 +58,8 @@ root.add(new KeyV('hello2', 'world'));
 
 root.dump({
 	indent: '\t',
-	quote: 'always'
+	quote: 'always',
+	escapes: false
 });
 ```
 
@@ -114,6 +115,15 @@ interface SharedParseOptions {
     escapes?:    boolean;
     multilines?: boolean;
     types?:      boolean;
+}
+```
+
+### DumpFormatOptions
+```ts
+interface DumpFormatOptions {
+    indent:  string;
+    quote:   "always"|"auto";
+    escapes: boolean;
 }
 ```
 

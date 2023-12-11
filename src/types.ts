@@ -4,9 +4,14 @@ export type ValueType = string|number|boolean;
 type ValueString = 'string'|'number'|'boolean';
 type ValueTypeMap = {'string': string, 'number': number, 'boolean': boolean};
 
+export class ParseError extends Error {
+	name = 'ParseError';
+}
+
 export interface DumpFormatOptions {
-	indent:  string,
-	quote:   'always'|'auto'
+	indent:   string;
+	quote:    'always'|'auto';
+	escapes:  boolean;
 }
 
 type WriteFunction = (value: string) => void;
@@ -14,12 +19,9 @@ type WriteFunction = (value: string) => void;
 const MAX_CONCAT_SIZE = 64000;
 
 const DumpFormatDefaults: DumpFormatOptions = {
-	indent:  '\t',
-	quote:   'always',
-}
-
-export class ParseError extends Error {
-	name = 'ParseError';
+	indent:   '\t',
+	quote:    'always',
+	escapes:  false
 }
 
 // TODO: Implement unescaping strings on import.
@@ -28,16 +30,23 @@ export class ParseError extends Error {
 // 	return value.replace(RE_UNESCAPE, '$1');
 // }
 
-function needs_quotes(value: string): boolean {
+function needs_quotes(value: string, is_value: boolean): boolean {
 	if (value.includes(' ')) return true;
 	if (value.startsWith('[') && value.endsWith(']')) return true;
+	if (is_value && (!isNaN(+value) || value === 'true' || value === 'false')) return true;
 	return false;
 }
 
-function escape(value: ValueType, quote: 'auto'|'always'): string {
+function escape(value: ValueType, options: DumpFormatOptions, is_value: boolean): string {
 	if (typeof value !== 'string') return value.toString();
+	const quote = options.quote === 'always' || needs_quotes(value, is_value);
 
-	if (quote === 'always' || needs_quotes(value)) {
+	if (!options.escapes) {
+		if (quote) return '"' + value + '"';
+		return value;
+	}
+
+	if (quote) {
 		const escaped = value
 			.replaceAll('\\', '\\\\')
 			.replaceAll('"', '\\"');
@@ -218,7 +227,7 @@ export class KeyVSet extends KeyVSetCommon {
 	__dump__(format: DumpFormatOptions, indent: string, write: WriteFunction) {
 		write(
 			indent
-			+ escape(this.key, format.quote)
+			+ escape(this.key, format, false)
 			+ '\n' + indent + '{\n'
 		);
 
@@ -248,9 +257,9 @@ export class KeyV {
 	__dump__(format: DumpFormatOptions, indent: string, write: WriteFunction) {
 		write(
 			indent
-			+ escape(this.key, format.quote)
+			+ escape(this.key, format, false)
 			+ ' '
-			+ escape(this.value, format.quote)
+			+ escape(this.value, format, true)
 			+ ( this.query === null ? '\n' : ' [' + this.query + ']\n' )
 		);
 	}
