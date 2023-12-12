@@ -186,14 +186,15 @@ class KeyVSetCommon {
 		return new KeyVFactory(this);
 	}
 
-	dump(format: DumpFormatOptions=DumpFormatDefaults): string {
+	dump( options: Partial<DumpFormatOptions>=DumpFormatDefaults ): string {
+		options = Object.assign({}, DumpFormatDefaults, options);
 		const out: string[] = new Array(MAX_CONCAT_SIZE);
 		let combined = '';
 		let i = 0;
 
 		// Writer function writes to the array until it exceeds the buffer length, at
 		// which point it will be appended to the string in one expensive operation.
-		this.__dump__(format, '', (value: string) => {
+		this.__dump__(options as DumpFormatOptions, '', (value: string) => {
 			out[i] = value;
 			i = (i+1) % MAX_CONCAT_SIZE;
 			if (i === 0) {
@@ -208,7 +209,7 @@ class KeyVSetCommon {
 		return combined;
 	}
 
-	__dump__(format: DumpFormatOptions, indent: string, write: WriteFunction) {
+	__dump__( format: DumpFormatOptions, indent: string, write: WriteFunction ) {
 		for ( const child of this.#values ) {
 			child.__dump__(format, indent, write);
 		}

@@ -11,55 +11,54 @@ npm i fast-vdf
 import { vdf, KeyV, KeyVSet } from 'fast-vdf';
 
 const root = vdf.parse(`
-"key" "value1"
-key value2
-set {
-	subkey value [hello_world]
+SteamAppId      620
+SearchPaths
+{
+    Game        |gameinfo_path|.
+    Game        portal2_dlc2
 }
 `);
 
-console.log(root.value('key'));
-// "value2"
+console.log(root.value('SteamAppId'));
+// 620
 
-console.log(root.dir('set').pair('subkey').query);
-// "hello_world"
+console.log(root.dir('SearchPaths').pair('Game').value);
+// "portal2_dlc2"
 
-
-try { root.pair('123'); }
-catch(e) { console.warn(e) }
-// Pair with key "123" does not exist in set!
+try { root.pair('DoesntExist'); }
+catch(e) { console.warn(e.message) }
+// Pair with key "doesntexist" does not exist in set!
 
 // Strict behaviour is enabled by default with all KeyVSet methods.
 // Since this pair does not exist, this call throws an error.
 
-console.log(root.pair('abc', null));
+console.log(root.pair('DoesntExist', null));
 
 // The default value can be set to null to
 // disable this behaviour, instead returning null.
 
 
-root.factory()
-    .pair('hello', 'world')
-    .dir('set')
-        .pair('subkey', 'value')
-        .back()
-    .pair('hello2', 'world');
+root.dir('SearchPaths').factory()
+    .pair('Game', 'portal2_dlc1')
+    .pair('Game', 'portal2')
+    .pair('Game', 'platform')
+    .exit();
 
 // Factory objects can be used to quickly create keyvalue structures.
 // The above code is equivalent to the below:
 
-root.add(new KeyV('hello', 'world'));
-root.add(new KeyVSet('set').add(new KeyV('subkey', 'value')));
-root.add(new KeyV('hello2', 'world'));
+const sp = root.dir('SearchPaths');
+sp.add(new KeyV('Game', 'portal2_dlc1'));
+sp.add(new KeyV('Game', 'portal2'));
+sp.add(new KeyV('Game', 'platform'));
 
 
 // After you've created your structure, you can dump it as a formatted
 // string with the dump function.
 
 root.dump({
-	indent: '\t',
-	quote: 'always',
-	escapes: false
+    quote: 'auto',
+    escapes: false
 });
 ```
 
@@ -89,12 +88,14 @@ Parses data into a tree of `KeyV` objects.
 >
 > `options` The parser configuration.
 
-### vdf.**json**(data: string, options?: SharedParseOptions): Object
+### vdf.**json**(data: string, env: Record<string, boolean>, options?: SharedParseOptions): Object
 Parses data into a regular javascript object.
 
 > **Parameters**
 >
 > `data` The string to parse.
+>
+> `env` An object containing condition values. (Ex. `{'$XBOX': false}` will cause keys with the condition `[$XBOX]` to be ignored.)
 >
 > `options` The parser configuration.
 
@@ -112,18 +113,18 @@ The internal API used by the parse.xyz functions.
 ### SharedParseOptions
 ```ts
 interface SharedParseOptions {
-    escapes?:    boolean;
-    multilines?: boolean;
-    types?:      boolean;
+    escapes?:    boolean; // true
+    multilines?: boolean; // true
+    types?:      boolean; // true
 }
 ```
 
 ### DumpFormatOptions
 ```ts
 interface DumpFormatOptions {
-    indent:  string;
-    quote:   "always"|"auto";
-    escapes: boolean;
+    indent?:  string;          // '\t'
+    quote?:   'always'|'auto'; // 'always'
+    escapes?: boolean;         // true
 }
 ```
 
