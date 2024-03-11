@@ -266,7 +266,9 @@ export class KeyV {
 		);
 	}
 
-	float(default_value?: number) {
+	float(): number|never;
+	float<T>(default_value: T): number|T;
+	float<T>(default_value?: T): number|T|never {
 		const v = parseFloat(this.value as string);
 		if (isNaN(v)) {
 			if (default_value !== undefined) return default_value;
@@ -275,7 +277,9 @@ export class KeyV {
 		return v;
 	}
 
-	int(default_value?: number) {
+	int(): number|never;
+	int<T>(default_value: T): number|T;
+	int<T>(default_value?: T): number|T|never {
 		const v = parseInt(this.value as string);
 		if (isNaN(v)) {
 			if (default_value !== undefined) return default_value;
@@ -292,7 +296,9 @@ export class KeyV {
 		return !(!this.value || this.value === 'off' || this.value === 'false' || this.value === '0');
 	}
 
-	vector(default_value?: ArrayLike<number>): ArrayLike<number> {
+	vector(): ArrayLike<number>|never;
+	vector<T>(default_value: T): ArrayLike<number>|T;
+	vector<T>(default_value?: T): ArrayLike<number>|T|never {
 		// This label allows us to use 'break attempt' as a pseudo-return for fail cases
 		attempt: if (typeof this.value === 'string') {
 			if (!this.value.startsWith('[') || !this.value.endsWith(']')) break attempt;
