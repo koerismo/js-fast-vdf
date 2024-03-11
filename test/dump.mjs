@@ -60,7 +60,7 @@ assert.strictEqual(dumpy,
 a\\"b\\"c def\\\\
 dir
 {
-	xyz "[123]"
+	xyz [123]
 	123 123
 }
 `);

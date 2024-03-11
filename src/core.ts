@@ -1,7 +1,7 @@
 import { ParseError, ValueType } from './types.js';
 
 export interface ParseOptions {
-	on_key:		(key:string, value:string|number|boolean, query?:string) => void;
+	on_key:		(key:string, value:ValueType, query?:string) => void;
 	on_enter:	(key:string) => void;
 	on_exit:	() => void;
 	escapes:	boolean;

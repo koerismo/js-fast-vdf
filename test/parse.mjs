@@ -41,7 +41,7 @@ describe('Parser', () => {
 			new KeyVRoot()
 				.add(new KeyV('hello', 'world', 'QUERY'))
 				.add(new KeyV('spaced key', 'spaced value'))
-				.add(new KeyV('hello', 123))
+				.add(new KeyV('hello', '123'))
 				.add(new KeyV('[QUERYISH_KEY]', 'unquoted.value'))
 				.all()
 		);
@@ -52,7 +52,7 @@ describe('Parser', () => {
 				"hello" "world"
 				"key" /* multiline
 				comments are very acceptable */
-				"value"`).all(),
+				"value"`, { multilines: true }).all(),
 			new KeyVRoot()
 				.add(new KeyV('hello', 'world'))
 				.add(new KeyV('key', 'value'))

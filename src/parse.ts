@@ -33,8 +33,8 @@ export function parse( data: string, options?: SharedParseOptions ): KeyVRoot {
 			out.add(new KeyV( key, value, query ));
 		},
 		escapes: options?.escapes ?? true,
-		multilines: options?.multilines ?? true,
-		types: options?.types ?? true,
+		multilines: options?.multilines ?? false,
+		types: options?.types ?? false,
 	});
 
 	return out;

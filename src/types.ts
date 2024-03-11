@@ -1,8 +1,6 @@
 export type KeyVChild = KeyV|KeyVSet;
 
 export type ValueType = string|number|boolean;
-type ValueString = 'string'|'number'|'boolean';
-type ValueTypeMap = {'string': string, 'number': number, 'boolean': boolean};
 
 export class ParseError extends Error {
 	name = 'ParseError';
@@ -10,7 +8,7 @@ export class ParseError extends Error {
 
 export interface DumpFormatOptions {
 	indent:   string;
-	quote:    'always'|'auto';
+	quote:    'always'|'auto'|'auto-typed';
 	escapes:  boolean;
 }
 
@@ -30,16 +28,20 @@ const DumpFormatDefaults: DumpFormatOptions = {
 // 	return value.replace(RE_UNESCAPE, '$1');
 // }
 
-function needs_quotes(value: string, is_value: boolean): boolean {
+function needs_quotes(value: string, is_value: boolean, type_strict: boolean): boolean {
+	if (!value.length) return true;
 	if (value.includes(' ')) return true;
-	if (value.startsWith('[') && value.endsWith(']')) return true;
-	if (is_value && (!isNaN(+value) || value === 'true' || value === 'false')) return true;
+	if (!is_value && value.startsWith('[') && value.endsWith(']')) return true;
+
+	// Detect values which could be interpreted as non-strings.
+	if (type_strict && is_value && (!isNaN(+value) || value === 'true' || value === 'false')) return true;
+
 	return false;
 }
 
 function escape(value: ValueType, options: DumpFormatOptions, is_value: boolean): string {
 	if (typeof value !== 'string') return value.toString();
-	const quote = options.quote === 'always' || needs_quotes(value, is_value);
+	const quote = options.quote === 'always' || needs_quotes(value, is_value, options.quote === 'auto-typed');
 
 	if (!options.escapes) {
 		if (quote) return '"' + value + '"';
@@ -148,13 +150,12 @@ class KeyVSetCommon {
 	}
 
 	/** Retrieves the value of a pair within this set. This function throws an error when no pair is found unless a default value is defined. */
-	value<D extends undefined, T extends ValueString>( key: string, default_value?: D, type?: T ): ValueTypeMap[T]|never;
-	value<D extends unknown, T extends ValueString>( key: string, default_value?: D, type?: T ): ValueTypeMap[T]|D;
-	value<D extends unknown, T extends ValueString>( key: string, default_value?: D, type?: T ): ValueTypeMap[T]|D|never {
+	value<D extends undefined>( key: string, default_value?: D ): ValueType|never;
+	value<D extends unknown>( key: string, default_value?: D ): ValueType|D;
+	value<D extends unknown>( key: string, default_value?: D ): ValueType|D|never {
 		const pair = this.pair(key, default_value === undefined ? undefined : null);
 		if (pair === null) return default_value as D;
-		if (type !== undefined && typeof pair.value !== type) throw new Error(`Pair with key "${pair.key}" has value type ${typeof pair.value}! (Expected ${type})`);
-		return pair.value as ValueTypeMap[T];
+		return pair.value;
 	}
 
 	/** Deletes a child object if the key is matched. Returns true if a child was deleted. If fast is explicitly enabled, the keys will be reordered to make the deletion O(1). */
@@ -248,7 +249,7 @@ export class KeyV {
 	query:	string|null;
 	parent:	KeyVSetCommon|null;
 
-	constructor( key: string, value:ValueType, query: string|null=null ) {
+	constructor( key: string, value: ValueType, query: string|null=null ) {
 		this.key	= key;
 		this.value	= value;
 		this.query	= query;
@@ -263,6 +264,52 @@ export class KeyV {
 			+ escape(this.value, format, true)
 			+ ( this.query === null ? '\n' : ' [' + this.query + ']\n' )
 		);
+	}
+
+	float(default_value?: number) {
+		const v = parseFloat(this.value as string);
+		if (isNaN(v)) {
+			if (default_value !== undefined) return default_value;
+			throw new TypeError(`Could not coerce value "${this.value}" to float!`);
+		}
+		return v;
+	}
+
+	int(default_value?: number) {
+		const v = parseInt(this.value as string);
+		if (isNaN(v)) {
+			if (default_value !== undefined) return default_value;
+			throw new TypeError(`Could not coerce value "${this.value}" to int!`);
+		}
+		return v;
+	}
+
+	string() {
+		return this.value.toString();
+	}
+
+	bool() {
+		return !(!this.value || this.value === 'off' || this.value === 'false' || this.value === '0');
+	}
+
+	vector(default_value?: ArrayLike<number>): ArrayLike<number> {
+		// This label allows us to use 'break attempt' as a pseudo-return for fail cases
+		attempt: if (typeof this.value === 'string') {
+			if (!this.value.startsWith('[') || !this.value.endsWith(']')) break attempt;
+
+			const split = this.value.slice(1, -1).trim().split(' ');
+			const vec = new Float64Array(split.length);
+
+			for (let i=0; i<vec.length; i++) {
+				const element = vec[i] = parseFloat(split[i]);
+				if (isNaN(element)) break attempt;
+			}
+
+			return vec;
+		}
+
+		if (default_value !== undefined) return default_value;
+		throw new TypeError(`Could not parse value "${this.value}" as vector!`);
 	}
 }
 

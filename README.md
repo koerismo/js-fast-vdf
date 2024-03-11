@@ -65,6 +65,16 @@ root.dump({
 
 # API
 
+## Breaking Changes
+
+### 2.0.0
+- The `types` and `multiline` options now default to false.
+- The `auto` quoting mode has been split into `auto` and `auto-typed`.
+	- `auto` behaves normally, quoting only values which strictly need to be quoted.
+	- `auto-typed` allows fast-vdf to quote string values that might be confused with non-string values. (ex. `"true"`, `"123"`)
+- The KeyVRoot/KeyVSet `.value(...)` method has been reworked to be less strict.
+- Methods for reading type-strict values have been added to KeyV. (`.int(...)`, `.float(...)`, `.string()`, `.bool()`, `.vector(...)`)
+
 ## Imports
 Note: This package, while written as an ES module, is compiled to CommonJS for backwards-compatibility. As such, the default export is emulated by including the contents of the `vdf` object in the main module.
 
