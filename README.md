@@ -132,9 +132,9 @@ interface SharedParseOptions {
 ### DumpFormatOptions
 ```ts
 interface DumpFormatOptions {
-    indent?:  string;          // '\t'
-    quote?:   'always'|'auto'; // 'always'
-    escapes?: boolean;         // true
+    indent?:  string;                       // '\t'
+    quote?:   'always'|'auto'|'auto-typed'; // 'always'
+    escapes?: boolean;                      // true
 }
 ```
 
