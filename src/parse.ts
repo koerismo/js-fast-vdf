@@ -18,6 +18,8 @@ const PARENT = Symbol('parent');
 /** Parses data into a tree of objects.
  * @param {string} data The data to parse.
  */
+export function parse( data: string ): KeyVRoot<string>;
+export function parse<T extends SharedParseOptions>( data: string, options: T ): T['types'] extends true ? KeyVRoot : KeyVRoot<string>;
 export function parse( data: string, options?: SharedParseOptions ): KeyVRoot {
 	let out: KeyVSet|KeyVRoot = new KeyVRoot();
 

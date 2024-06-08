@@ -1,4 +1,4 @@
-export type KeyVChild = KeyV|KeyVSet;
+export type KeyVChild<V extends ValueType = ValueType> = KeyV<V>|KeyVSet<V>;
 
 export type ValueType = string|number|boolean;
 
@@ -64,15 +64,15 @@ function escape(value: ValueType, options: DumpFormatOptions, is_value: boolean)
 
 
 /** Defines common methods between KeyValueSet and KeyValueRoot. */
-class KeyVSetCommon {
+class KeyVSetCommon<V extends ValueType = ValueType> {
 
-	#values:	Array<KeyVChild> = [];
+	#values:	Array<KeyVChild<V>> = [];
 	parent:		KeyVSetCommon|null = null;
 
 	/** Retrieves any child of this set with a matching key. This function throws an error when no child is found unless a default value is defined. */
-	any( key: string ): KeyVChild;
-	any<T extends any>( key: string, default_value?: T ): KeyVChild|T;
-	any<T extends any>( key: string, default_value?: T ): KeyVChild|T {
+	any( key: string ): KeyVChild<V>;
+	any<T extends any>( key: string, default_value?: T ): KeyVChild<V>|T;
+	any<T extends any>( key: string, default_value?: T ): KeyVChild<V>|T {
 		key = key.toLowerCase();
 
 		for ( let i=this.#values.length-1; i>-1; i-- ) {
@@ -85,7 +85,7 @@ class KeyVSetCommon {
 	}
 
 	/** Returns an array of all children within this set with matching keys, or all children if no key is provided. */
-	all( key?: string ): KeyVChild[] {
+	all( key?: string ): KeyVChild<V>[] {
 		if ( key == undefined ) return this.#values;
 		key = key.toLowerCase();
 
@@ -98,9 +98,9 @@ class KeyVSetCommon {
 	}
 
 	/** Retrieves a set within this set. This function throws an error when no set is found unless a default value is defined. */
-	dir( key: string ): KeyVSet;
-	dir<T extends any>( key: string, default_value?: T ): KeyVSet|T;
-	dir<T extends any>( key: string, default_value?: T ): KeyVSet|T {
+	dir( key: string ): KeyVSet<V>;
+	dir<T extends any>( key: string, default_value?: T ): KeyVSet<V>|T;
+	dir<T extends any>( key: string, default_value?: T ): KeyVSet<V>|T {
 		key = key.toLowerCase();
 
 		for ( let i=this.#values.length-1; i>-1; i-- ) {
@@ -112,7 +112,7 @@ class KeyVSetCommon {
 		return default_value;
 	}
 
-	dirs( key?: string ): KeyVSet[] {
+	dirs( key?: string ): KeyVSet<V>[] {
 		if (key) key = key.toLowerCase();
 
 		const out = [];
@@ -124,9 +124,9 @@ class KeyVSetCommon {
 	}
 
 	/** Retrieves a pair within this set. This function throws an error when no pair is found unless a default value is defined. */
-	pair<D extends undefined>( key: string, default_value?: D ): KeyV|never;
-	pair<D extends unknown>( key: string, default_value?: D ): KeyV|D;
-	pair<D extends unknown>( key: string, default_value?: D ): KeyV|D|never {
+	pair<D extends undefined>( key: string, default_value?: D ): KeyV<V>|never;
+	pair<D extends unknown>( key: string, default_value?: D ): KeyV<V>|D;
+	pair<D extends unknown>( key: string, default_value?: D ): KeyV<V>|D|never {
 		key = key.toLowerCase();
 
 		for ( let i=this.#values.length-1; i>-1; i-- ) {
@@ -138,7 +138,7 @@ class KeyVSetCommon {
 		return default_value;
 	}
 
-	pairs( key?: string ): KeyV[] {
+	pairs( key?: string ): KeyV<V>[] {
 		if (key) key = key.toLowerCase();
 
 		const out = [];
@@ -150,16 +150,16 @@ class KeyVSetCommon {
 	}
 
 	/** Retrieves the value of a pair within this set. This function throws an error when no pair is found unless a default value is defined. */
-	value<D extends undefined>( key: string, default_value?: D ): ValueType|never;
-	value<D extends unknown>( key: string, default_value?: D ): ValueType|D;
-	value<D extends unknown>( key: string, default_value?: D ): ValueType|D|never {
+	value<D extends undefined>( key: string, default_value?: D ): V|never;
+	value<D extends unknown>( key: string, default_value?: D ): V|D;
+	value<D extends unknown>( key: string, default_value?: D ): V|D|never {
 		const pair = this.pair(key, default_value === undefined ? undefined : null);
 		if (pair === null) return default_value as D;
 		return pair.value;
 	}
 
 	/** Deletes a child object if the key is matched. Returns true if a child was deleted. If fast is explicitly enabled, the keys will be reordered to make the deletion O(1). */
-	delete( kv: KeyVChild, fast: boolean=false ): boolean {
+	delete( kv: KeyVChild<V>, fast: boolean=false ): boolean {
 		const ind = this.#values.indexOf(kv);
 		if (ind === -1) return false;
 
@@ -176,7 +176,7 @@ class KeyVSetCommon {
 	}
 
 	/** Adds a child to this set. */
-	add( kv: KeyVChild ): this {
+	add( kv: KeyVChild<V> ): this {
 		kv.parent = this;
 		this.#values.push( kv );
 		return this;
@@ -217,7 +217,7 @@ class KeyVSetCommon {
 	}
 }
 
-export class KeyVSet extends KeyVSetCommon {
+export class KeyVSet<V extends ValueType = ValueType> extends KeyVSetCommon<V> {
 
 	key:	string;
 
@@ -239,17 +239,17 @@ export class KeyVSet extends KeyVSetCommon {
 }
 
 
-export class KeyVRoot extends KeyVSetCommon {}
+export class KeyVRoot<V extends ValueType = ValueType> extends KeyVSetCommon<V> {}
 
 
-export class KeyV {
+export class KeyV<V extends ValueType = ValueType> {
 
 	key:	string;
-	value:	ValueType;
+	value:	V;
 	query:	string|null;
 	parent:	KeyVSetCommon|null;
 
-	constructor( key: string, value: ValueType, query: string|null=null ) {
+	constructor( key: string, value: V, query: string|null=null ) {
 		this.key	= key;
 		this.value	= value;
 		this.query	= query;
