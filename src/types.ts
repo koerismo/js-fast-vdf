@@ -297,13 +297,13 @@ export class KeyV<V extends ValueType = ValueType> {
 	}
 
 	vector(): ArrayLike<number>|never;
-	vector<T>(default_value: T): ArrayLike<number>|T;
-	vector<T>(default_value?: T): ArrayLike<number>|T|never {
+	vector<T>(default_value: T, bracket_L?: string, bracket_R?: string): ArrayLike<number>|T;
+	vector<T>(default_value?: T, bracket_L: string='[', bracket_R: string=']'): ArrayLike<number>|T|never {
 		// This label allows us to use 'break attempt' as a pseudo-return for fail cases
 		attempt: if (typeof this.value === 'string') {
-			if (!this.value.startsWith('[') || !this.value.endsWith(']')) break attempt;
+			if (!this.value.startsWith(bracket_L) || !this.value.endsWith(bracket_R)) break attempt;
 
-			const split = this.value.slice(1, -1).trim().split(' ');
+			const split = this.value.slice(bracket_L.length, (-bracket_R.length || undefined)).trim().split(' ');
 			const vec = new Float64Array(split.length);
 
 			for (let i=0; i<vec.length; i++) {

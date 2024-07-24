@@ -70,6 +70,8 @@ describe('KeyV', () => {
 		
 		// Vectors
 		assert.deepStrictEqual(new KeyV('', '[1.0 0.5 0.25]').vector(), new Float64Array([1.0, 0.5, 0.25]));
+		assert.deepStrictEqual(new KeyV('', '{1.0 0.5 0.25}').vector(undefined, '{', '}'), new Float64Array([1.0, 0.5, 0.25]));
+		assert.deepStrictEqual(new KeyV('', '1.0 0.5 0.25').vector(undefined, '', ''), new Float64Array([1.0, 0.5, 0.25]));
 		assert.deepStrictEqual(new KeyV('', 'nada').vector([1.0, 2.0]), [1.0, 2.0]);
 		assert.throws(() => new KeyV('', 'nada').vector());
 	});
