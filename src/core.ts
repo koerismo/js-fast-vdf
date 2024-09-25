@@ -38,6 +38,7 @@ function is_term( code: number ) {
 		code == C_BOPEN || code == C_BCLOSE );
 }
 
+/** Parses the given string and calls the provided callbacks as they are processed. */
 export function parse( text: string, options: ParseOptions ): void {
 	const no_escapes	= !options.escapes;
 	const length		= text.length;

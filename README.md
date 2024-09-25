@@ -105,7 +105,7 @@ Parses data into a regular javascript object.
 >
 > `data` The string to parse.
 >
-> `env` An object containing condition values. (Ex. `{'$XBOX': false}` will cause keys with the condition `[$XBOX]` to be ignored.)
+> `env` An object containing condition values. (Ex. `{ "$XBOX": false }` will cause keys with the condition `[$XBOX]` to be ignored.)
 >
 > `options` The parser configuration.
 
@@ -124,8 +124,8 @@ The internal API used by the parse.xyz functions.
 ```ts
 interface SharedParseOptions {
     escapes?:    boolean; // true
-    multilines?: boolean; // true
-    types?:      boolean; // true
+    multilines?: boolean; // false
+    types?:      boolean; // false
 }
 ```
 

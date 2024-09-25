@@ -16,7 +16,8 @@ interface JsonSet {
 const PARENT = Symbol('parent');
 
 /** Parses data into a tree of objects.
- * @param {string} data The data to parse.
+ * @param data The text to parse.
+ * @param options Tokenization settings to pass to the core parser.
  */
 export function parse( data: string ): KeyVRoot<string>;
 export function parse<T extends SharedParseOptions>( data: string, options: T ): T['types'] extends true ? KeyVRoot : KeyVRoot<string>;
@@ -42,7 +43,11 @@ export function parse( data: string, options?: SharedParseOptions ): KeyVRoot {
 	return out;
 }
 
-/** Parses data into a regular javascript object. */
+/** Parses data into a regular javascript object.
+ * @param data The text to parse.
+ * @param env An object containing conditional values to filter keys with. (Ex. `{ '$XBOX': false }` will cause keys with the condition [$XBOX] to be ignored.)
+ * @param options Tokenization settings to pass to the core parser.
+*/
 export function json( data: string, env: Record<string, boolean>={}, options?: SharedParseOptions ): unknown {
 	let out: JsonSet = { [PARENT]: null };
 
