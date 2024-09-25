@@ -183,7 +183,7 @@ class KeyVSetCommon<V extends ValueType = ValueType> {
 	}
 
 	/** Creates a new factory object from this set for creating elements quickly. */
-	factory() {
+	factory(): KeyVFactory {
 		return new KeyVFactory(this);
 	}
 
@@ -210,7 +210,7 @@ class KeyVSetCommon<V extends ValueType = ValueType> {
 		return combined;
 	}
 
-	__dump__( format: DumpFormatOptions, indent: string, write: WriteFunction ) {
+	__dump__( format: DumpFormatOptions, indent: string, write: WriteFunction ): void {
 		for ( const child of this.#values ) {
 			child.__dump__(format, indent, write);
 		}
@@ -226,7 +226,7 @@ export class KeyVSet<V extends ValueType = ValueType> extends KeyVSetCommon<V> {
 		this.key = key;
 	}
 
-	__dump__(format: DumpFormatOptions, indent: string, write: WriteFunction) {
+	__dump__(format: DumpFormatOptions, indent: string, write: WriteFunction): void {
 		write(
 			indent
 			+ escape(this.key, format, false)
@@ -256,7 +256,7 @@ export class KeyV<V extends ValueType = ValueType> {
 		this.parent	= null;
 	}
 
-	__dump__(format: DumpFormatOptions, indent: string, write: WriteFunction) {
+	__dump__(format: DumpFormatOptions, indent: string, write: WriteFunction): void {
 		write(
 			indent
 			+ escape(this.key, format, false)
@@ -288,11 +288,11 @@ export class KeyV<V extends ValueType = ValueType> {
 		return v;
 	}
 
-	string() {
+	string(): string {
 		return this.value.toString();
 	}
 
-	bool() {
+	bool(): boolean {
 		return !(!this.value || this.value === 'off' || this.value === 'false' || this.value === '0');
 	}
 
