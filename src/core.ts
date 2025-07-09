@@ -9,18 +9,26 @@ export interface ParseOptions {
 	types:      boolean;
 }
 
-const C_QUOTE  = 34,  S_QUOTE  = '"',
-      C_STAR   = 42,  S_STAR   = '*',
-      C_SLASH  = 47,  S_SLASH  = '/',
-      C_BOPEN  = 123, S_BOPEN  = '{',
-      C_BCLOSE = 125, S_BCLOSE = '}',
-      C_ESCAPE = 92,  S_ESCAPE = '\\',
-      C_LN     = 10,  S_LN     = '\n';
+export const enum Char {
+	'"' = 34,
+	'#' = 35,
+	'*' = 42,
+	'/' = 47,
+	'{' = 123,
+	'}' = 125,
+	'[' = 91,
+	'\\' = 92,
+	']' = 93,
+	'\r' = 13,
+	'\n' = 10,
+	' ' = 32,
+	'\t' = 9,
+}
 
 function is_plain( code: number ) {
 	return (
 		( code > 32 && code < 92 ) ||
-		( code > 92 && code < 125 )
+		( code > 92 && code < 125 ) || code == Char['#']
 	);
 }
 
@@ -34,8 +42,8 @@ function parse_value( value: string ): string|number|boolean {
 
 function is_term( code: number ) {
 	return (
-		code == 32 || code == 9 || code == 13 || code == C_LN ||
-		code == C_BOPEN || code == C_BCLOSE );
+		code == Char[' '] || code == Char['\t'] || code == Char['\r'] || code == Char['\n'] ||
+		code == Char['{'] || code == Char['}'] );
 }
 
 /** Parses the given string and calls the provided callbacks as they are processed. */
@@ -48,13 +56,13 @@ export function parse( text: string, options: ParseOptions ): void {
 
 	for ( let i=0; i<length; i++ ) {
 		const c = text.charCodeAt(i);
-		const escaped = !no_escapes && text.charCodeAt(i-1) === C_ESCAPE;
+		const escaped = !no_escapes && text.charCodeAt(i-1) === Char['\\'];
 
 		// Spacing ( tab, space, \r, \n )
-		if ( c === 32 || c === 9 || c === 13 || c === C_LN ) continue;
+		if ( c === Char[' '] || c === Char['\t'] || c === Char['\r'] || c === Char['\n'] ) continue;
 
 		// Start bracket
-		if ( c === C_BOPEN && !escaped ) {
+		if ( c === Char['{'] && !escaped ) {
 			if ( key === null ) throw new ParseError( `Attempted to enter block without key at ${i}!` );
 			options.on_enter( key );
 			key = null;
@@ -62,8 +70,8 @@ export function parse( text: string, options: ParseOptions ): void {
 		}
 
 		// End bracket
-		if ( c === C_BCLOSE && !escaped ) {
-			if ( key !== null && value === null ) throw new ParseError( `Encountered unpaired key before ending bracket at ${i}!` );
+		if ( c === Char['}'] && !escaped ) {
+			if ( key !== null && value === null ) throw new ParseError( `Encountered unpaired key "${key}" before ending bracket at ${i}!` );
 			else if ( value !== null ) options.on_key( key as string, value );
 			key = value = null;
 			options.on_exit();
@@ -71,13 +79,13 @@ export function parse( text: string, options: ParseOptions ): void {
 		}
 
 		// Quoted string
-		if ( c === C_QUOTE && !escaped ) {
+		if ( c === Char['"'] && !escaped ) {
 			const start = i+1;
 
 			while (true) {
-				i = text.indexOf(S_QUOTE, i+1);
+				i = text.indexOf('"', i+1);
 				if (i === -1) throw new ParseError( `Encountered unterminated quote starting at ${start-1}!` );
-				if (no_escapes || text.charCodeAt(i-1) !== C_ESCAPE) break;
+				if (no_escapes || text.charCodeAt(i-1) !== Char['\\']) break;
 			}
 
 			const chunk = text.slice(start, i);
@@ -92,19 +100,19 @@ export function parse( text: string, options: ParseOptions ): void {
 		}
 
 		// Single-line comment ( // )
-		if ( c  === 47 && text.charCodeAt(i+1) === 47 ) {
-			i = text.indexOf(S_LN, i+1);
+		if ( c  === Char['/'] && text.charCodeAt(i+1) === Char['/'] ) {
+			i = text.indexOf('\n', i+1);
 			if ( i === -1 ) break;
 			continue;
 		}
 
 		// Multi-line comment ( /* )
-		if ( options.multilines && c === 47 && text.charCodeAt(i+1) === 42 ) {
+		if ( options.multilines && c === 47 && text.charCodeAt(i+1) === Char['*'] ) {
 			const start = i;
 			while (true) {
-				i = text.indexOf(S_STAR, i+1);
+				i = text.indexOf('*', i+1);
 				if ( i === -1 ) throw new ParseError( `Encountered unterminated multiline comment starting at ${start}!` );
-				if ( text.charCodeAt(i+1) === C_SLASH ) break;
+				if ( text.charCodeAt(i+1) === Char['/'] ) break;
 			}
 
 			i ++;
@@ -117,14 +125,14 @@ export function parse( text: string, options: ParseOptions ): void {
 
 			while (i < length) {
 				i++;
-				if ( is_term(text.charCodeAt(i)) && (no_escapes || text.charCodeAt(i-1) !== C_ESCAPE) ) break;
+				if ( is_term(text.charCodeAt(i)) && (no_escapes || text.charCodeAt(i-1) !== Char['\\']) ) break;
 			}
 
 			const chunk = text.slice(start, i);
 			if ( key === null )			key = chunk;
 			else if ( value === null )	value = options.types ? parse_value(chunk) : chunk;
 			else {
-				if ( text.charCodeAt(start) === 91 && text.charCodeAt(i-1) === 93 ) {
+				if ( text.charCodeAt(start) === Char['['] && text.charCodeAt(i-1) === Char[']'] ) {
 					options.on_key( key, value, text.slice(start+1, i-1) );
 					key = null;
 				}
@@ -137,7 +145,7 @@ export function parse( text: string, options: ParseOptions ): void {
 		}
 	}
 
-	if ( key !== null && value === null ) throw new ParseError( 'Encountered unpaired key!' );
+	if ( key !== null && value === null ) throw new ParseError( `Encountered unpaired key "${key}" at EOF!` );
 	else if ( value !== null ) options.on_key( key as string, value );
 	return;
 }

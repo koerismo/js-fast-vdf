@@ -1,3 +1,5 @@
+import { Char } from './core.js';
+
 export type KeyVChild<V extends ValueType = ValueType> = KeyV<V>|KeyVSet<V>;
 
 export type ValueType = string|number|boolean;
@@ -22,37 +24,36 @@ const DumpFormatDefaults: DumpFormatOptions = {
 	escapes:  false
 }
 
-// TODO: Implement unescaping strings on import.
-// const RE_UNESCAPE = /\\(.)/g;
-// function unescape(value: string): string {
-// 	return value.replace(RE_UNESCAPE, '$1');
-// }
+const RE_UNESCAPE = /\\(.)/g;
+const RE_WHITESPACE = /\s/;
+const RE_ESCAPES_REQUIRED = /["]/g;
 
-function needs_quotes(value: string, is_value: boolean, type_strict: boolean): boolean {
+/** Returns whether surrounding quotes are necessary for the given unescaped string. */
+export function needs_quotes(value: string, is_value: boolean, type_strict: boolean): boolean {
 	if (!value.length) return true;
-	if (value.includes(' ')) return true;
-	if (!is_value && value.startsWith('[') && value.endsWith(']')) return true;
+	if (RE_WHITESPACE.test(value)) return true;
+	if (!is_value && value.charCodeAt(0) === Char['['] && value.charCodeAt(value.length-1) === Char[']']) return true;
 
 	// Detect values which could be interpreted as non-strings.
 	if (type_strict && is_value && (!isNaN(+value) || value === 'true' || value === 'false')) return true;
-
 	return false;
 }
 
-function escape(value: ValueType, options: DumpFormatOptions, is_value: boolean): string {
+/** Returns a KV-ready string from the provided value. */
+export function escape(value: ValueType, options: DumpFormatOptions, is_value: boolean): string {
 	if (typeof value !== 'string') return value.toString();
 	const quote = options.quote === 'always' || needs_quotes(value, is_value, options.quote === 'auto-typed');
 
 	if (!options.escapes) {
+		if (RE_ESCAPES_REQUIRED.test(value)) throw Error(`Attempted to encode quotes without escapes enabled!`);
 		if (quote) return '"' + value + '"';
 		return value;
 	}
 
 	if (quote) {
-		const escaped = value
+		return '"' + value
 			.replaceAll('\\', '\\\\')
-			.replaceAll('"', '\\"');
-		return '"' + escaped + '"';
+			.replaceAll('"', '\\"') + '"';
 	}
 
 	return value
@@ -62,6 +63,11 @@ function escape(value: ValueType, options: DumpFormatOptions, is_value: boolean)
 		.replaceAll('}', '\\}');
 }
 
+/** Takes a string and collapses all escape sequences. */
+export function unescape<T extends ValueType>(value: T): T {
+	if (typeof value !== 'string') return value;
+	return value.replace(RE_UNESCAPE, '$1') as T;
+}
 
 /** Defines common methods between KeyValueSet and KeyValueRoot. */
 class KeyVSetCommon<V extends ValueType = ValueType> {
@@ -322,10 +328,11 @@ export class KeyV<V extends ValueType = ValueType> {
 
 /** A class for KeyVSetCommon quick tree creation. */
 class KeyVFactory {
+	origin: KeyVSetCommon;
 	source: KeyVSetCommon;
 
 	constructor(source: KeyVSetCommon) {
-		this.source = source;
+		this.source = this.origin = source;
 	}
 
 	/** Creates to a new directory and moves into it. */
@@ -353,6 +360,6 @@ class KeyVFactory {
 
 	/** Exits the factory. */
 	exit(): KeyVSetCommon {
-		return this.source;
+		return this.origin;
 	}
 }

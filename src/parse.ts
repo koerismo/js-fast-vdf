@@ -1,7 +1,8 @@
-import { parse as cparse } from './core.js';
-import { KeyV, KeyVRoot, KeyVSet, ParseError, ValueType } from './types.js';
+import { Char, parse as cparse } from './core.js';
+import { KeyV, KeyVChild, KeyVRoot, KeyVSet, ParseError, ValueType, unescape } from './types.js';
 
-interface SharedParseOptions {
+export interface SharedParseOptions {
+	on_macro?: (key: string, value: ValueType) => KeyVChild[] | undefined;
 	escapes?: boolean;
 	multilines?: boolean;
 	types?: boolean;
@@ -23,6 +24,10 @@ export function parse( data: string ): KeyVRoot<string>;
 export function parse<T extends SharedParseOptions>( data: string, options: T ): T['types'] extends true ? KeyVRoot : KeyVRoot<string>;
 export function parse( data: string, options?: SharedParseOptions ): KeyVRoot {
 	let out: KeyVSet|KeyVRoot = new KeyVRoot();
+	const macros = options?.on_macro != undefined;
+	const escapes = options?.escapes ?? true;
+	const multilines = options?.multilines ?? false;
+	const types = options?.types ?? false;
 
 	cparse( data, {
 		on_enter(key) {
@@ -33,11 +38,22 @@ export function parse( data: string, options?: SharedParseOptions ): KeyVRoot {
 			out = out.parent;
 		},
 		on_key(key, value, query) {
+			if (escapes) {
+				key = unescape(key);
+				value = unescape(value);
+			}
+			if (macros && key.charCodeAt(0) === Char['#']) {
+				const append = options.on_macro!(key, value);
+				if (append) {
+					for ( let i=0; i<append.length; i++ ) out.add(append[i]);
+				}
+				return;
+			}
 			out.add(new KeyV( key, value, query ));
 		},
-		escapes: options?.escapes ?? true,
-		multilines: options?.multilines ?? false,
-		types: options?.types ?? false,
+		escapes,
+		multilines,
+		types
 	});
 
 	return out;
