@@ -1,11 +1,11 @@
 import assert from 'node:assert';
-import { vdf, KeyVRoot, KeyVSet, KeyV } from '../dist/index.js';
+import { parse, json, KeyVRoot, KeyVSet, KeyV } from '../dist/index.js';
 
 describe('Parser', () => {
 
 	it('Handles escapes', () => {
 		assert.deepStrictEqual(
-			vdf.parse(`
+			parse(`
 				"hello\\" \\"world" value
 				escaped\\ key value
 				"escaped escape\\\\" value`)
@@ -20,7 +20,7 @@ describe('Parser', () => {
 
 	it('Responds to escape parameter', () => {
 		assert.deepStrictEqual(
-			vdf.parse(`
+			parse(`
 				"hello\\" "world" [query]
 				key\\ "path\\to\\some\\place\\"`, { escapes: false })
 				.all(),
@@ -33,7 +33,7 @@ describe('Parser', () => {
 
 	it('Parses basic keyvalues', () => {
 		assert.deepStrictEqual(
-			vdf.parse(`
+			parse(`
 				"hello" "world" [QUERY] // Ignore "this" [comment]
 				"spaced key" "spaced value"
 				hello 123
@@ -48,7 +48,7 @@ describe('Parser', () => {
 	});
 
 	it('Parses multiline comments when specified', () => {
-		assert.deepStrictEqual(vdf.parse(`
+		assert.deepStrictEqual(parse(`
 				"hello" "world"
 				"key" /* multiline
 				comments are very acceptable */
@@ -58,7 +58,7 @@ describe('Parser', () => {
 				.add(new KeyV('key', 'value'))
 				.all());
 
-		assert.throws(() => vdf.parse(`
+		assert.throws(() => parse(`
 			"hello" "world"
 			"key" /* multiline
 			comments are never acceptable */
@@ -67,7 +67,7 @@ describe('Parser', () => {
 
 	it('Parses nested structures', () => {
 		assert.deepStrictEqual(
-			vdf.parse(`
+			parse(`
 			key1 {
 				key2 value1
 				key3 {
@@ -92,7 +92,7 @@ describe('Parser', () => {
 
 	it('Parses to JSON', () => {
 		assert.deepStrictEqual(
-			vdf.json(`
+			json(`
 			key1 {
 				key2 value1
 				key3 {

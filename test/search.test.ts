@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { vdf, KeyVRoot, KeyVSet, KeyV } from '../dist/index.js';
+import { KeyVRoot, KeyVSet, KeyV } from '../dist/index.js';
 
 const root = new KeyVRoot()
 		.add(new KeyVSet('hello')

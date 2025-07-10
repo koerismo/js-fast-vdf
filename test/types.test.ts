@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { vdf, KeyVRoot, KeyVSet, KeyV } from '../dist/index.js';
+import { parse, KeyVRoot, KeyV } from '../dist/index.js';
 
 const input = `123 "456"
 123 456
@@ -34,19 +34,19 @@ const expected_parse = new KeyVRoot().factory()
 
 describe('Types', () => {
 	it('Parses typed input', () => {
-		assert.deepStrictEqual(vdf.parse(input, { types: true }).pairs(), expected_parse.pairs());
+		assert.deepStrictEqual(parse(input, { types: true }).pairs(), expected_parse.pairs());
 	});
 
 	it('Dumps always-quoted typed output', () => {
-		assert.strictEqual(vdf.parse(input, { types: true }).dump({ quote: 'always' }), output_always);
+		assert.strictEqual(parse(input, { types: true }).dump({ quote: 'always' }), output_always);
 	});
 
 	it('Dumps auto-quoted typed output', () => {
-		assert.strictEqual(vdf.parse(input, { types: true }).dump({ quote: 'auto' }), output_auto);
+		assert.strictEqual(parse(input, { types: true }).dump({ quote: 'auto' }), output_auto);
 	});
 
 	it('Dumps auto-type-quoted typed output', () => {
-		assert.strictEqual(vdf.parse(input, { types: true }).dump({ quote: 'auto-typed' }), output_auto_typed);
+		assert.strictEqual(parse(input, { types: true }).dump({ quote: 'auto-typed' }), output_auto_typed);
 	});
 });
 
