@@ -1,5 +1,6 @@
 import { KeyVRoot } from '../dist/index.js';
 import assert from 'node:assert';
+import { DumpQuotationType } from '../dist/types.js';
 
 const test_indent = new KeyVRoot().factory()
 	.pair('abc', 'def')
@@ -23,7 +24,7 @@ const test_escape = new KeyVRoot().factory()
 describe('Object', () => {
 
 it('Dumps structures with correct indentation', () => {
-const dumpy = test_indent.dump({ quote: 'always', indent: '> ' });
+const dumpy = test_indent.dump({ quote: DumpQuotationType.Always, indent: '> ' });
 assert.strictEqual(dumpy,
 `"abc" "def"
 "a b c"
@@ -38,7 +39,7 @@ assert.strictEqual(dumpy,
 
 
 it('Escapes quoted values', () => {
-const dumpy = test_escape.dump({ quote: 'always', indent: '\t', escapes: true });
+const dumpy = test_escape.dump({ quote: DumpQuotationType.Always, indent: '\t', escapes: true });
 assert.strictEqual(dumpy,
 `"abc" "def"
 "a b c" "d e f"
@@ -53,7 +54,7 @@ assert.strictEqual(dumpy,
 
 
 it('Escapes unquoted values', () => {
-const dumpy = test_escape.dump({ quote: 'auto', indent: '\t', escapes: true });
+const dumpy = test_escape.dump({ quote: DumpQuotationType.Auto, indent: '\t', escapes: true });
 assert.strictEqual(dumpy,
 `abc def
 "a b c" "d e f"

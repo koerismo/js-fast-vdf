@@ -1,6 +1,6 @@
 import { ParseError, ValueType } from './types.js';
 
-export interface ParseOptions {
+export interface CoreParseOptions {
 	on_key:		(key:string, value:ValueType, query?:string) => void;
 	on_enter:	(key:string) => void;
 	on_exit:	() => void;
@@ -25,13 +25,6 @@ export const enum Char {
 	'\t' = 9,
 }
 
-function is_plain( code: number ) {
-	return (
-		( code > 32 && code < 92 ) ||
-		( code > 92 && code < 125 ) || code == Char['#']
-	);
-}
-
 function parse_value( value: string ): string|number|boolean {
 	if (value === 'true') return true;
 	if (value === 'false') return false;
@@ -47,7 +40,7 @@ function is_term( code: number ) {
 }
 
 /** Parses the given string and calls the provided callbacks as they are processed. */
-export function parse( text: string, options: ParseOptions ): void {
+export function parse( text: string, options: CoreParseOptions ): void {
 	const no_escapes	= !options.escapes;
 	const length		= text.length;
 
@@ -120,7 +113,8 @@ export function parse( text: string, options: ParseOptions ): void {
 		}
 
 		// Non-quoted string
-		if ( is_plain(c) ) {
+		// If we reach here, that means that this is neither a terminator nor a space character.
+		{
 			const start = i;
 
 			while (i < length) {

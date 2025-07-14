@@ -1,5 +1,6 @@
 import assert from 'node:assert';
 import { parse, KeyVRoot, KeyV } from '../dist/index.js';
+import { needs_quotes, escape, unescape, DumpQuotationType } from '../dist/types.js';
 
 const input = `123 "456"
 123 456
@@ -38,15 +39,15 @@ describe('Types', () => {
 	});
 
 	it('Dumps always-quoted typed output', () => {
-		assert.strictEqual(parse(input, { types: true }).dump({ quote: 'always' }), output_always);
+		assert.strictEqual(parse(input, { types: true }).dump({ quote: DumpQuotationType.Always }), output_always);
 	});
 
 	it('Dumps auto-quoted typed output', () => {
-		assert.strictEqual(parse(input, { types: true }).dump({ quote: 'auto' }), output_auto);
+		assert.strictEqual(parse(input, { types: true }).dump({ quote: DumpQuotationType.Auto }), output_auto);
 	});
 
 	it('Dumps auto-type-quoted typed output', () => {
-		assert.strictEqual(parse(input, { types: true }).dump({ quote: 'auto-typed' }), output_auto_typed);
+		assert.strictEqual(parse(input, { types: true }).dump({ quote: DumpQuotationType.AutoTyped }), output_auto_typed);
 	});
 });
 
@@ -76,3 +77,27 @@ describe('KeyV', () => {
 		assert.throws(() => new KeyV('', 'nada').vector());
 	});
 });
+
+describe('Escapes', () => {
+	it('Determines quotedness', () => {
+		for (const [unescaped, escaped, should_quote] of [
+			['abc',			'abc',			false],
+			['\\a\\bc',		'\\\\a\\\\bc',	false],
+			['\na\tb',		'\\na\\tb',		false],
+			['"abc"',		'\\"abc\\"',	false],
+			['\n\t',		'\\n\\t',		false],
+			['\n\t ',		'"\\n\\t "',	true],
+			['[amogus]',	'"[amogus]"',	true],
+		] as [string, string, boolean][]) {
+
+			const conv_escaped = escape(unescaped, { escapes: true, quote: DumpQuotationType.Auto, indent: '\t' }, false);
+			const conv_unescaped = unescape(should_quote ? escaped.slice(1, -1) : escaped);
+			// const nq = needs_quotes()
+
+			assert.equal(escaped, conv_escaped, `standard --> escaped FAILED! for string "${unescaped}"`);
+			assert.equal(unescaped, conv_unescaped, `escaped --> standard FAILED! for string "${escaped}"`);
+		
+		}
+	})
+
+})

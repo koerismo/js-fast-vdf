@@ -19,9 +19,11 @@
 	],
 	"scripts": {
 		"build": "tsc",
-		"test": "c8 mocha test/*.test.ts --extension js,ts"
+		"test": "c8 mocha test/*.test.ts --extension js,ts",
+		"speedtest": "0x test/speed/speed.mjs"
 	},
 	"devDependencies": {
+		"0x": "^6.0.0",
 		"@types/mocha": "^10.0.10",
 		"@types/node": "^20.16.8",
 		"c8": "^8.0.1",

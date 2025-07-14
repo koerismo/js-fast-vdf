@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { vdf } from '../../dist/index.js';
+import { DumpQuotationType } from '../../dist/types.js';
 
 const TRIALS = 20;
 const vmfString = readFileSync('test/speed/pl_goldrush_halloween.vmf', 'utf-8');
@@ -15,7 +16,7 @@ function trial(parseOpts) {
 	const end_parse = performance.now();
 	
 	for ( let i=0; i<TRIALS; i++ ) {
-		dummy_out = dummy_in.dump({ quote: 'always', indent: '\t', escapes: false });
+		dummy_out = dummy_in.dump({ quote: DumpQuotationType.Always, indent: '\t', escapes: false });
 	}
 	
 	const end_dump = performance.now();

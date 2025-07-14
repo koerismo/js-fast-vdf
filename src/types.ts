@@ -1,72 +1,94 @@
 import { Char } from './core.js';
 
-export type KeyVChild<V extends ValueType = ValueType> = KeyV<V>|KeyVSet<V>;
+export type KeyVChild<V extends ValueType = ValueType> = KeyV<V> | KeyVSet<V>;
 
-export type ValueType = string|number|boolean;
+export type ValueType = string | number | boolean;
 
+/** Describes a generic parsing error. */
 export class ParseError extends Error {
 	name = 'ParseError';
 }
 
+export type DumpQuotationType = typeof DumpQuotationType[keyof typeof DumpQuotationType];
+export const DumpQuotationType = {
+	/** Quote all keys and values, regardless of necessity. This is the fastest option, as all checks are bypassed. */
+	Always: 0,
+	/** Quote keys and values only when strictly required. */
+	Auto: 1,
+	/** Quote all strings covered by `Auto`, and also values which could be confused as non-string values. */
+	AutoTyped: 2,
+} as const;
+
 export interface DumpFormatOptions {
 	indent:   string;
-	quote:    'always'|'auto'|'auto-typed';
+	quote:    DumpQuotationType;
 	escapes:  boolean;
 }
 
 type WriteFunction = (value: string) => void;
 
+/** The maximum number of strings allowed to be concatenated in one call.
+ * Going above 64,000 ocasionally causes crashes, so it is capped there by default. */
 const MAX_CONCAT_SIZE = 64000;
 
 const DumpFormatDefaults: DumpFormatOptions = {
 	indent:   '\t',
-	quote:    'always',
+	quote:    DumpQuotationType.Always,
 	escapes:  false
 }
 
-const RE_UNESCAPE = /\\(.)/g;
-const RE_WHITESPACE = /\s/;
-const RE_ESCAPES_REQUIRED = /["]/g;
+const RE_NEEDS_QUOTES = /[\s{}]/;
+const RE_NEEDS_ESCAPES = /\"/;
 
-/** Returns whether surrounding quotes are necessary for the given unescaped string. */
-export function needs_quotes(value: string, is_value: boolean, type_strict: boolean): boolean {
+/** Returns whether surrounding quotes are necessary for the given unescaped string. Used by {@link escape}(...) */
+export function needs_quotes(value: string, is_value: boolean, mode: DumpQuotationType): boolean {
 	if (!value.length) return true;
-	if (RE_WHITESPACE.test(value)) return true;
+	if (RE_NEEDS_QUOTES.test(value)) return true;
 	if (!is_value && value.charCodeAt(0) === Char['['] && value.charCodeAt(value.length-1) === Char[']']) return true;
 
 	// Detect values which could be interpreted as non-strings.
-	if (type_strict && is_value && (!isNaN(+value) || value === 'true' || value === 'false')) return true;
+	if (mode === DumpQuotationType.AutoTyped && is_value && (!isNaN(+value) || value === 'true' || value === 'false')) return true;
 	return false;
 }
 
-/** Returns a KV-ready string from the provided value. */
+/** Returns a KV-ready string from the provided value, using the following rules:
+ *  - If escapes are enabled...
+ *  	- Replace any of the following characters with their escape sequence:
+ *  		- newline = `\n`, return = `\r`, tab = `\t`, backslash = `\\`, quote = `\"`
+ *  - If escapes are disabled ...
+ *  	- If the string contains any of the following characters, it cannot be sanitized and will throw an error:
+ *  		- quote (`"`)
+ *  - Quotes will be applied when a tab, newline, return, space, or opening/closing bracket is present, or if the string is empty.
+ *  	- If this is a key, quotes are also required when the string is surrounded by square brackets.
+ */
 export function escape(value: ValueType, options: DumpFormatOptions, is_value: boolean): string {
 	if (typeof value !== 'string') return value.toString();
-	const quote = options.quote === 'always' || needs_quotes(value, is_value, options.quote === 'auto-typed');
 
-	if (!options.escapes) {
-		if (RE_ESCAPES_REQUIRED.test(value)) throw Error(`Attempted to encode quotes without escapes enabled!`);
-		if (quote) return '"' + value + '"';
-		return value;
-	}
-
-	if (quote) {
-		return '"' + value
+	if (options.escapes) {
+		value = value
 			.replaceAll('\\', '\\\\')
-			.replaceAll('"', '\\"') + '"';
+			.replaceAll('\n', '\\n')
+			.replaceAll('\t', '\\t')
+			.replaceAll('"', '\\"');
+	}
+	else {
+		if (RE_NEEDS_ESCAPES.test(value)) throw Error(`Attempted to encode quotes without escapes enabled!`);
 	}
 
-	return value
-		.replaceAll('\\', '\\\\')
-		.replaceAll('"', '\\"')
-		.replaceAll('{', '\\{')
-		.replaceAll('}', '\\}');
+	const quote = options.quote === DumpQuotationType.Always || needs_quotes(value, is_value, options.quote);
+	if (quote) return '"' + value + '"';
+	return value;
 }
 
 /** Takes a string and collapses all escape sequences. */
 export function unescape<T extends ValueType>(value: T): T {
 	if (typeof value !== 'string') return value;
-	return value.replace(RE_UNESCAPE, '$1') as T;
+	if (!value.includes('\\')) return value;
+	return value
+		.replaceAll('\\n', '\n')
+		.replaceAll('\\t', '\t')
+		.replaceAll('\\"', '"')
+		.replaceAll('\\\\', '\\') as T;
 }
 
 /** Defines common methods between KeyValueSet and KeyValueRoot. */
