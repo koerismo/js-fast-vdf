@@ -34,11 +34,10 @@ const MAX_CONCAT_SIZE = 64000;
 const DumpFormatDefaults: DumpFormatOptions = {
 	indent:   '\t',
 	quote:    DumpQuotationType.Always,
-	escapes:  false
+	escapes:  true
 }
 
 const RE_NEEDS_QUOTES = /[\s{}]/;
-const RE_NEEDS_ESCAPES = /\"/;
 
 /** Returns whether surrounding quotes are necessary for the given unescaped string. Used by {@link escape}(...) */
 export function needs_quotes(value: string, is_value: boolean, mode: DumpQuotationType): boolean {
@@ -72,7 +71,7 @@ export function escape(value: ValueType, options: DumpFormatOptions, is_value: b
 			.replaceAll('"', '\\"');
 	}
 	else {
-		if (RE_NEEDS_ESCAPES.test(value)) throw Error(`Attempted to encode quotes without escapes enabled!`);
+		if (value.includes('"')) throw Error(`Attempted to encode quotes without escapes enabled!`);
 	}
 
 	const quote = options.quote === DumpQuotationType.Always || needs_quotes(value, is_value, options.quote);
