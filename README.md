@@ -130,15 +130,16 @@ interface SharedParseOptions {
     escapes?:    boolean; // true
     multilines?: boolean; // false
     types?:      boolean; // false
+	on_macro?:   (key: string, value: ValueType, context: T) => void; // undefined
 }
 ```
 
 ### DumpFormatOptions
 ```ts
 interface DumpFormatOptions {
+    escapes?: boolean;      // true
     indent?:  string;       // '\t'
     quote?:   0 | 1 | 2;    // DumpQuotationType.Always
-    escapes?: boolean;      // true
 }
 ```
 
