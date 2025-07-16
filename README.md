@@ -67,6 +67,13 @@ root.dump({
 
 ## Breaking Changes
 
+### 3.0.0
+- The parser has been modified to better match Valve's parser(s), which allow any chars to begin an unquoted string.
+- The parser now correctly evaluates escaped escapes before quote endings.
+- The `quote` option has been changed to use an enum (`DumpQuotationType`)
+- When parsing strings with escape sequences, the parsed string will now include the evaluated escape sequences rather than just the raw string.
+- Dumping has been updated to escapes strings consistently with the library's parsing.
+
 ### 2.0.0
 - The `types` and `multiline` options now default to false.
 - The `auto` quoting mode has been split into `auto` and `auto-typed`.
@@ -76,16 +83,11 @@ root.dump({
 - Methods for reading type-strict values have been added to KeyV. (`.int(...)`, `.float(...)`, `.string()`, `.bool()`, `.vector(...)`)
 
 ## Imports
-Note: This package, while written as an ES module, is compiled to CommonJS for backwards-compatibility. As such, the default export is emulated by including the contents of the `vdf` object in the main module.
 
 ```ts
-import vdf from 'fast-vdf';             // vdf.parse(), vdf.json(), vdf.KeyV, vdf.KeyVSet, ...
+import parse from 'fast-vdf';           // parse()
 import { vdf } from 'fast-vdf';         // vdf.parse(), vdf.json(), KeyV, KeyVSet, ...
 import { parse } from 'fast-vdf';       // parse(), json(), KeyV, KeyVSet, ...
-
-const vdf = require('fast-vdf');        // vdf.parse(), vdf.json(), vdf.KeyV, vdf.KeyVSet, ...
-const { vdf } = require('fast-vdf');    // vdf.parse(), vdf.json(), KeyV, KeyVSet, ...
-const { parse } = require('fast-vdf');  // parse(), json(), KeyV, KeyVSet, ...
 ```
 
 ## Functions

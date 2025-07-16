@@ -1,10 +1,14 @@
 import { Char, parse as cparse } from './core.js';
 import { KeyV, KeyVChild, KeyVRoot, KeyVSet, ParseError, ValueType, unescape } from './types.js';
 
-export interface SharedParseOptions {
-	on_macro?: (key: string, value: ValueType) => KeyVChild[] | undefined;
+export interface SharedParseOptions<T = KeyVChild[]> {
+	/** Optional handler for `#macro` syntax keyvalues. If no handler is provided, macros will be treated as standard keys. */
+	on_macro?: (key: string, value: ValueType) => T | undefined;
+	/** Should escape sequences be parsed? Defaults to `true` */
 	escapes?: boolean;
+	/** Should multiline comments be accepted as valid syntax? Defaults to `false` */
 	multilines?: boolean;
+	/** Should values be interpreted as primitive values? Defaults to `false` */
 	types?: boolean;
 }
 

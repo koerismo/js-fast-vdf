@@ -1,4 +1,4 @@
-import { ParseError, ValueType } from './types.js';
+import { unescape, ParseError, type ValueType } from './types.js';
 
 export interface CoreParseOptions {
 	on_key:		(key:string, value:ValueType, query?:string) => void;
@@ -10,19 +10,19 @@ export interface CoreParseOptions {
 }
 
 export const enum Char {
+	'\t' = 9,
+	'\n' = 10,
+	'\r' = 13,
+	' ' = 32,
 	'"' = 34,
 	'#' = 35,
 	'*' = 42,
 	'/' = 47,
-	'{' = 123,
-	'}' = 125,
 	'[' = 91,
 	'\\' = 92,
 	']' = 93,
-	'\r' = 13,
-	'\n' = 10,
-	' ' = 32,
-	'\t' = 9,
+	'{' = 123,
+	'}' = 125,
 }
 
 function parse_value( value: string ): string|number|boolean {
@@ -41,7 +41,7 @@ function is_term( code: number ) {
 
 /** Parses the given string and calls the provided callbacks as they are processed. */
 export function parse( text: string, options: CoreParseOptions ): void {
-	const no_escapes	= !options.escapes;
+	const escapes		= options.escapes;
 	const length		= text.length;
 
 	let key: string|null = null;
@@ -49,13 +49,12 @@ export function parse( text: string, options: CoreParseOptions ): void {
 
 	for ( let i=0; i<length; i++ ) {
 		const c = text.charCodeAt(i);
-		const escaped = !no_escapes && text.charCodeAt(i-1) === Char['\\'];
 
-		// Spacing ( tab, space, \r, \n )
-		if ( c === Char[' '] || c === Char['\t'] || c === Char['\r'] || c === Char['\n'] ) continue;
+		// Spacing ( tab, space, \n, \r )
+		if ( c === Char[' '] || c === Char['\t'] || c === Char['\n'] || c === Char['\r'] ) continue;
 
 		// Start bracket
-		if ( c === Char['{'] && !escaped ) {
+		if ( c === Char['{'] ) {
 			if ( key === null ) throw new ParseError( `Attempted to enter block without key at ${i}!` );
 			options.on_enter( key );
 			key = null;
@@ -63,22 +62,32 @@ export function parse( text: string, options: CoreParseOptions ): void {
 		}
 
 		// End bracket
-		if ( c === Char['}'] && !escaped ) {
-			if ( key !== null && value === null ) throw new ParseError( `Encountered unpaired key "${key}" before ending bracket at ${i}!` );
-			else if ( value !== null ) options.on_key( key as string, value );
+		if ( c === Char['}'] ) {
+			if ( key !== null ) {
+				if ( value === null ) throw new ParseError( `Encountered unpaired key "${key}" before ending bracket at ${i}!` );
+				else options.on_key( key, value );
+			}
 			key = value = null;
 			options.on_exit();
 			continue;
 		}
 
 		// Quoted string
-		if ( c === Char['"'] && !escaped ) {
+		if ( c === Char['"'] ) {
 			const start = i+1;
 
-			while (true) {
+			if (escapes) {
+				while (i < length) {
+					i++;
+					const c = text.charCodeAt(i);
+					if (c === Char['\\']) { i++; continue }
+					if (c === Char['"']) break;
+				}
+				if (i >= length) throw new ParseError( `Encountered unterminated quote starting at ${start-1}!` );
+			}
+			else {
 				i = text.indexOf('"', i+1);
 				if (i === -1) throw new ParseError( `Encountered unterminated quote starting at ${start-1}!` );
-				if (no_escapes || text.charCodeAt(i-1) !== Char['\\']) break;
 			}
 
 			const chunk = text.slice(start, i);
@@ -93,33 +102,38 @@ export function parse( text: string, options: CoreParseOptions ): void {
 		}
 
 		// Single-line comment ( // )
-		if ( c  === Char['/'] && text.charCodeAt(i+1) === Char['/'] ) {
-			i = text.indexOf('\n', i+1);
-			if ( i === -1 ) break;
-			continue;
-		}
+		if ( c  === Char['/'] ) {
+			const c2 = text.charCodeAt(i+1);
 
-		// Multi-line comment ( /* )
-		if ( options.multilines && c === 47 && text.charCodeAt(i+1) === Char['*'] ) {
-			const start = i;
-			while (true) {
-				i = text.indexOf('*', i+1);
-				if ( i === -1 ) throw new ParseError( `Encountered unterminated multiline comment starting at ${start}!` );
-				if ( text.charCodeAt(i+1) === Char['/'] ) break;
+			if ( c2  === Char['/'] ) {
+				i = text.indexOf('\n', i+1);
+				if ( i === -1 ) break;
+				continue;
 			}
 
-			i ++;
-			continue;
+			if ( options.multilines && c2 === Char['*'] ) {
+				const start = i;
+				while (true) {
+					i = text.indexOf('*', i+1);
+					if ( i === -1 ) throw new ParseError( `Encountered unterminated multiline comment starting at ${start}!` );
+					if ( text.charCodeAt(i+1) === Char['/'] ) break;
+				}
+
+				i ++;
+				continue;
+			}
 		}
 
 		// Non-quoted string
-		// If we reach here, that means that this is neither a terminator nor a space character.
+		// If we reach here, that means that this is neither a control nor a space character.
 		{
 			const start = i;
 
 			while (i < length) {
 				i++;
-				if ( is_term(text.charCodeAt(i)) && (no_escapes || text.charCodeAt(i-1) !== Char['\\']) ) break;
+				const c = text.charCodeAt(i);
+				if ( escapes && c === Char['\\'] ) { i++; continue; }
+				if ( is_term(c) ) break;
 			}
 
 			const chunk = text.slice(start, i);

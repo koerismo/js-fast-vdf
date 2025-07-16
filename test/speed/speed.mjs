@@ -16,7 +16,7 @@ function trial(parseOpts) {
 	const end_parse = performance.now();
 	
 	for ( let i=0; i<TRIALS; i++ ) {
-		dummy_out = dummy_in.dump({ quote: DumpQuotationType.Always, indent: '\t', escapes: false });
+		dummy_out = dummy_in.dump({ quote: DumpQuotationType.Auto, indent: '\t', escapes: parseOpts.escapes });
 	}
 	
 	const end_dump = performance.now();

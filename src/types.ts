@@ -15,7 +15,7 @@ export const DumpQuotationType = {
 	Always: 0,
 	/** Quote keys and values only when strictly required. */
 	Auto: 1,
-	/** Quote all strings covered by `Auto`, and also values which could be confused as non-string values. */
+	/** Quote all strings covered by `Auto`, and also values which could be confused with non-string values. */
 	AutoTyped: 2,
 } as const;
 

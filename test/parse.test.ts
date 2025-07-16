@@ -8,12 +8,12 @@ describe('Parser', () => {
 			parse(`
 				"hello\\" \\"world" value
 				escaped\\ key value
-				"escaped escape\\\\" value`)
+				"escaped escape\\\\" value`, { escapes: true })
 				.all(),
 			new KeyVRoot()
-				.add(new KeyV('hello\\" \\"world', 'value'))
+				.add(new KeyV('hello" "world', 'value'))
 				.add(new KeyV('escaped\\ key', 'value'))
-				.add(new KeyV('escaped escape\\\\', 'value'))
+				.add(new KeyV('escaped escape\\', 'value'))
 				.all()
 		);
 	});

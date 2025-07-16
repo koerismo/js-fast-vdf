@@ -5,10 +5,12 @@
 		"rootDir": "src",
 		"outDir": "dist",
 		"lib": [ "DOM", "ES2021" ],
+		"skipLibCheck": true,
 		"declaration": true,
 		"alwaysStrict": true,
 		"strict": true,
-		"removeComments": true
+		"removeComments": true,
+		"sourceMap": true
 	},
 	"include": [ "src/**/*" ]
 }
