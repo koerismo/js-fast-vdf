@@ -1,9 +1,9 @@
 import { Char, parse as cparse } from './core.js';
-import { KeyV, KeyVChild, KeyVRoot, KeyVSet, ParseError, ValueType, unescape } from './types.js';
+import { KeyV, KeyVRoot, KeyVSet, ParseError, ValueType, unescape } from './types.js';
 
-export interface SharedParseOptions<T = KeyVChild[]> {
+export interface SharedParseOptions<T = KeyVSet|KeyVRoot> {
 	/** Optional handler for `#macro` syntax keyvalues. If no handler is provided, macros will be treated as standard keys. */
-	on_macro?: (key: string, value: ValueType) => T | undefined;
+	on_macro?: (key: string, value: ValueType, context: T) => void;
 	/** Should escape sequences be parsed? Defaults to `true` */
 	escapes?: boolean;
 	/** Should multiline comments be accepted as valid syntax? Defaults to `false` */
@@ -47,10 +47,7 @@ export function parse( data: string, options?: SharedParseOptions ): KeyVRoot {
 				value = unescape(value);
 			}
 			if (macros && key.charCodeAt(0) === Char['#']) {
-				const append = options.on_macro!(key, value);
-				if (append) {
-					for ( let i=0; i<append.length; i++ ) out.add(append[i]);
-				}
+				options.on_macro!(key, value, out);
 				return;
 			}
 			out.add(new KeyV( key, value, query ));

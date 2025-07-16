@@ -68,11 +68,13 @@ root.dump({
 ## Breaking Changes
 
 ### 3.0.0
+- This module has been reconfigured to transpile for ESM.
 - The parser has been modified to better match Valve's parser(s), which allow any chars to begin an unquoted string.
 - The parser now correctly evaluates escaped escapes before quote endings.
 - The `quote` option has been changed to use an enum (`DumpQuotationType`)
 - When parsing strings with escape sequences, the parsed string will now include the evaluated escape sequences rather than just the raw string.
 - Dumping has been updated to escapes strings consistently with the library's parsing.
+- Added optional `on_macro` option for parsing. When a `#macro` is encountered, this method is called with the key, value, and surrounding context.
 
 ### 2.0.0
 - The `types` and `multiline` options now default to false.
