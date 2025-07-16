@@ -1,4 +1,4 @@
-import { unescape, ParseError, type ValueType } from './types.js';
+import { ParseError, type ValueType } from './types.js';
 
 export interface CoreParseOptions {
 	on_key:		(key:string, value:ValueType, query?:string) => void;
