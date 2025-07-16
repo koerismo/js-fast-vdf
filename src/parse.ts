@@ -65,8 +65,10 @@ export function parse( data: string, options?: SharedParseOptions ): KeyVRoot {
  * @param env An object containing conditional values to filter keys with. (Ex. `{ '$XBOX': false }` will cause keys with the condition [$XBOX] to be ignored.)
  * @param options Tokenization settings to pass to the core parser.
 */
-export function json( data: string, env: Record<string, boolean>={}, options?: SharedParseOptions ): unknown {
+export function json( data: string, env: Record<string, boolean>={}, options?: SharedParseOptions<JsonSet> ): unknown {
 	let out: JsonSet = { [PARENT]: null };
+	const escapes = options?.escapes ?? true;
+	const macros = options?.on_macro != undefined;
 
 	cparse( data, {
 		on_enter(key) {
@@ -80,9 +82,17 @@ export function json( data: string, env: Record<string, boolean>={}, options?: S
 		},
 		on_key(key, value, query) {
 			if (query && (query in env) && !env[query]) return;
+			if (escapes) {
+				key = unescape(key);
+				value = unescape(value);
+			}
+			if (macros && key.charCodeAt(0) === Char['#']) {
+				options.on_macro!(key, value, out);
+				return;
+			}
 			out[key] = value;
 		},
-		escapes: options?.escapes ?? true,
+		escapes,
 		multilines: options?.multilines ?? true,
 		types: options?.types ?? true,
 	});

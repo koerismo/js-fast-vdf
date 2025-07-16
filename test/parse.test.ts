@@ -115,4 +115,25 @@ describe('Parser', () => {
 			}
 		);
 	});
+
+	it('Uses #macro handler', () => {
+		assert.deepStrictEqual(
+			parse(`
+				"abc" "def"
+				#hello world
+				`, { on_macro: undefined }).all(),
+			new KeyVRoot()
+				.add(new KeyV('abc', 'def'))
+				.add(new KeyV('#hello', 'world')).all()
+			);
+
+		assert.deepStrictEqual(
+			parse(`
+				"abc" "def"
+				#hello world
+				`, { on_macro(key, value, context) { assert.strictEqual(key, '#hello'); assert.strictEqual(value, 'world'); }, }).all(),
+			new KeyVRoot()
+				.add(new KeyV('abc', 'def')).all()
+			);
+	});
 });
