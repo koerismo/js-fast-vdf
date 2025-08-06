@@ -35,8 +35,8 @@ function parse_value( value: string ): string|number|boolean {
 
 function is_term( code: number ) {
 	return (
-		code == Char[' '] || code == Char['\t'] || code == Char['\r'] || code == Char['\n'] ||
-		code == Char['{'] || code == Char['}'] );
+		code === Char[' '] || code === Char['\t'] || code === Char['\r'] || code === Char['\n'] ||
+		code === Char['{'] || code === Char['}'] );
 }
 
 /** Parses the given string and calls the provided callbacks as they are processed. */
@@ -75,15 +75,18 @@ export function parse( text: string, options: CoreParseOptions ): void {
 		// Quoted string
 		if ( c === Char['"'] ) {
 			const start = i+1;
-
+			
 			if (escapes) {
+				let n: number;
 				while (i < length) {
-					i++;
-					const c = text.charCodeAt(i);
-					if (c === Char['\\']) { i++; continue }
-					if (c === Char['"']) break;
+					// Find next quote
+					i = text.indexOf('"', i+1);
+					if (i === -1) throw new ParseError( `Encountered unterminated quote starting at ${start-1}!` );
+					if (text.charCodeAt(i - 1) !== Char['\\']) break;
+					n = 2;
+					while (text.charCodeAt(i - n) === Char['\\']) n++;
+					if (n & 1) break;
 				}
-				if (i >= length) throw new ParseError( `Encountered unterminated quote starting at ${start-1}!` );
 			}
 			else {
 				i = text.indexOf('"', i+1);

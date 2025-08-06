@@ -1,5 +1,9 @@
 import assert from 'node:assert';
-import { parse, json, KeyVRoot, KeyVSet, KeyV } from '../dist/index.js';
+import { parse, json, KeyVRoot, KeyVSet, KeyV, type ValueType, type JsonSet } from '../dist/index.js';
+
+// function flat(a: TemplateStringsArray) {
+// 	return a.join('').split('\n').map(x => x.trimStart()).join('\n');
+// }
 
 describe('Parser', () => {
 
@@ -117,23 +121,90 @@ describe('Parser', () => {
 	});
 
 	it('Uses #macro handler', () => {
+		const macro_test = `
+			"abc" "def"
+			#hello world
+		`;
+
 		assert.deepStrictEqual(
-			parse(`
-				"abc" "def"
-				#hello world
-				`, { on_macro: undefined }).all(),
+			parse(macro_test, { on_macro: undefined }).all(),
 			new KeyVRoot()
 				.add(new KeyV('abc', 'def'))
 				.add(new KeyV('#hello', 'world')).all()
-			);
+		);
+	
+		assert.deepStrictEqual(
+			json(macro_test, { on_macro: undefined }),
+			{ 'abc': 'def', '#hello': 'world' }
+		);
+
+		let called_keyv = false;
+		const on_macro_keyv = (key: string, value: ValueType, context: KeyVSet | KeyVRoot) => {
+			assert.strictEqual(key, '#hello');
+			assert.strictEqual(value, 'world');
+			called_keyv = true;
+		}
+
+		let called_json = false;
+		const on_macro_json = (key: string, value: ValueType, context: JsonSet) => {
+			assert.strictEqual(key, '#hello');
+			assert.strictEqual(value, 'world');
+			called_json = true;
+		}
 
 		assert.deepStrictEqual(
-			parse(`
-				"abc" "def"
-				#hello world
-				`, { on_macro(key, value, context) { assert.strictEqual(key, '#hello'); assert.strictEqual(value, 'world'); }, }).all(),
+			parse(macro_test, { on_macro: on_macro_keyv }).all(),
+			new KeyVRoot().add(new KeyV('abc', 'def')).all()
+		);
+
+		assert.deepStrictEqual(
+			json(macro_test, { on_macro: on_macro_json }),
+			{ 'abc': 'def' }
+		);
+
+		assert(called_keyv, 'Macro handler not called in KeyV handler!');
+		assert(called_json, 'Macro handler not called in json handler!');
+	});
+
+	it('Uses [query] handler', () => {
+		const query_test = `
+			"no" "query"
+			"abc" "def" [123]
+			"hello" "world" [456]
+		`;
+
+		assert.deepStrictEqual(
+			parse(query_test, { on_query: undefined }).all(),
 			new KeyVRoot()
-				.add(new KeyV('abc', 'def')).all()
-			);
+				.add(new KeyV('no', 'query'))
+				.add(new KeyV('abc', 'def', '123'))
+				.add(new KeyV('hello', 'world', '456')).all()
+		);
+	
+		assert.deepStrictEqual(
+			json(query_test, { on_query: undefined }),
+			{ 'no': 'query', 'abc': 'def', 'hello': 'world' }
+		);
+
+		let called = 0;
+		const on_query = (query: string) => {
+			called++;
+			if (query === '456') return false;
+			return true;
+		}
+
+		assert.deepStrictEqual(
+			parse(query_test, { on_query: on_query }).all(),
+			new KeyVRoot()
+				.add(new KeyV('no', 'query'))
+				.add(new KeyV('abc', 'def', '123')).all()
+		);
+
+		assert.deepStrictEqual(
+			json(query_test, { on_query: on_query }),
+			{ 'no': 'query', 'abc': 'def' }
+		);
+
+		assert.equal(called, 4, 'Expected query handler to be called 4x!');
 	});
 });

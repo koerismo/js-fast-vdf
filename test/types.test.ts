@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { parse, KeyVRoot, KeyV } from '../dist/index.js';
-import { needs_quotes, escape, unescape, DumpQuotationType } from '../dist/types.js';
+import { escape, unescape, DumpQuotationType } from '../dist/types.js';
 
 const input = `123 "456"
 123 456
@@ -33,7 +33,7 @@ const expected_parse = new KeyVRoot().factory()
 	.pair('false', false)
 	.exit();
 
-describe('Types', () => {
+describe('Types: Parsing', () => {
 	it('Parses typed input', () => {
 		assert.deepStrictEqual(parse(input, { types: true }).pairs(), expected_parse.pairs());
 	});
@@ -92,12 +92,22 @@ describe('Escapes', () => {
 
 			const conv_escaped = escape(unescaped, { escapes: true, quote: DumpQuotationType.Auto, indent: '\t' }, false);
 			const conv_unescaped = unescape(should_quote ? escaped.slice(1, -1) : escaped);
-			// const nq = needs_quotes()
 
+			assert((conv_escaped[0] === '"') === should_quote, `Expected quotes=${should_quote}, but got ${!should_quote} on string "${unescape}"`);
 			assert.equal(escaped, conv_escaped, `standard --> escaped FAILED! for string "${unescaped}"`);
 			assert.equal(unescaped, conv_unescaped, `escaped --> standard FAILED! for string "${escaped}"`);
 		
 		}
-	})
+	});
+
+	it('Rejects invalid keys', () => {
+		assert.throws(() => {
+			escape('so-called "escapes"', { escapes: false, indent: '\t', quote: DumpQuotationType.Auto }, true);
+		}, 'Expected quotation rejection when escapes are disabled!');
+		assert.strictEqual(
+			escape('so-called "escapes"', { escapes: true, indent: '\t', quote: DumpQuotationType.Auto }, true),
+			'"so-called \\"escapes\\""'
+		, 'Expected valid escaped string!');
+	});
 
 })

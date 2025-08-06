@@ -93,7 +93,7 @@ export function unescape<T extends ValueType>(value: T): T {
 /** Defines common methods between KeyValueSet and KeyValueRoot. */
 class KeyVSetCommon<V extends ValueType = ValueType> {
 
-	#values:	Array<KeyVChild<V>> = [];
+	#values:	KeyVChild<V>[] = [];
 	parent:		KeyVSetCommon|null = null;
 
 	/** Retrieves any child of this set with a matching key. This function throws an error when no child is found unless a default value is defined. */
@@ -202,10 +202,21 @@ class KeyVSetCommon<V extends ValueType = ValueType> {
 		return true;
 	}
 
-	/** Adds a child to this set. */
+	/** Adds a child to this set. If adding multiple children, use {@link insert()} instead! */
 	add( kv: KeyVChild<V> ): this {
 		kv.parent = this;
 		this.#values.push( kv );
+		return this;
+	}
+
+	/** Adds multiple children to this set in a single call. If adding a single child, use {@link add()} instead! */
+	insert( kvs: KeyVChild<V>[] ): this {
+		let idx = this.#values.length;
+		this.#values.length += kvs.length;
+		for (let i=0; i<kvs.length; i++, idx++) {
+			this.#values[idx] = kvs[i];
+			kvs[i].parent = this;
+		}
 		return this;
 	}
 

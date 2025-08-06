@@ -1,7 +1,7 @@
 {
 	"name": "fast-vdf",
 	"description": "Your average javascript KeyValues processing library, as fast as parsable!",
-	"version": "2.0.6",
+	"version": "3.0.0",
 	"license": "ISC",
 	"author": "Koerismo",
 	"type": "module",
@@ -25,10 +25,10 @@
 	"devDependencies": {
 		"0x": "^6.0.0",
 		"@types/mocha": "^10.0.10",
-		"@types/node": "^24.0.13",
+		"@types/node": "^24.1.0",
 		"c8": "^8.0.1",
 		"mocha": "^11.7.1",
 		"typescript": "^5.8.3"
 	},
-	"packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977"
+	"packageManager": "pnpm@10.13.1+sha512.37ebf1a5c7a30d5fabe0c5df44ee8da4c965ca0c5af3dbab28c3a1681b70a256218d05c81c9c0dcf767ef6b8551eb5b960042b9ed4300c59242336377e01cfad"
 }
