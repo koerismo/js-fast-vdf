@@ -1,30 +1,46 @@
-import { parse as cparse } from './core.js';
-import { KeyV, KeyVRoot, KeyVSet, ParseError, ValueType } from './types.js';
+import { Char, parse as cparse } from './core.js';
+import { KeyV, KeyVRoot, KeyVSet, ParseError, ValueType, unescape } from './types.js';
 
-interface SharedParseOptions {
+export interface SharedParseOptions<T = KeyVSet|KeyVRoot> {
+	/** Optional handler for `#macro` syntax keyvalues. If no handler is provided, macros will be treated as standard keys. */
+	on_macro?: (key: string, value: ValueType, context: T) => void;
+	/** Optional handler for `[query]` syntax. If present, keyvalues with `false` queries will be omitted. */
+	on_query?: (query: string) => boolean;
+	/** Should escape sequences be parsed? Defaults to `true` */
 	escapes?: boolean;
+	/** Should multiline comments be accepted as valid syntax? Defaults to `false` */
 	multilines?: boolean;
+	/** Should values be interpreted as primitive values? Defaults to `false` */
 	types?: boolean;
 }
 
-interface JsonSet {
+export interface JsonSet<T = ValueType> {
+	[key: string]: JsonSet|T;
+}
+
+interface JsonSetInternal {
 	[PARENT]?: null|JsonSet;
-	[key: string]: JsonSet|ValueType;
+	[key: string]: JsonSetInternal|ValueType;
 }
 
 // Used to track parent nodes in JSON output
 const PARENT = Symbol('parent');
 
 /** Parses data into a tree of objects.
- * @param data The text to parse.
+ * @param text The text to parse.
  * @param options Tokenization settings to pass to the core parser.
  */
-export function parse( data: string ): KeyVRoot<string>;
-export function parse<T extends SharedParseOptions>( data: string, options: T ): T['types'] extends true ? KeyVRoot : KeyVRoot<string>;
-export function parse( data: string, options?: SharedParseOptions ): KeyVRoot {
+export function parse( text: string ): KeyVRoot<string>;
+export function parse<T extends SharedParseOptions>( text: string, options: T ): T['types'] extends true ? KeyVRoot : KeyVRoot<string>;
+export function parse( text: string, options?: SharedParseOptions ): KeyVRoot {
 	let out: KeyVSet|KeyVRoot = new KeyVRoot();
+	const macros = options?.on_macro != undefined;
+	const queries = options?.on_query != undefined;
+	const escapes = options?.escapes ?? true;
+	const multilines = options?.multilines ?? false;
+	const types = options?.types ?? false;
 
-	cparse( data, {
+	cparse( text, {
 		on_enter(key) {
 			out.add(out = new KeyVSet( key ));
 		},
@@ -33,25 +49,39 @@ export function parse( data: string, options?: SharedParseOptions ): KeyVRoot {
 			out = out.parent;
 		},
 		on_key(key, value, query) {
+			if (query && queries && !options!.on_query!(query))
+				return;
+			if (escapes) {
+				key = unescape(key);
+				value = unescape(value);
+			}
+			if (macros && key.charCodeAt(0) === Char['#']) {
+				options.on_macro!(key, value, out);
+				return;
+			}
 			out.add(new KeyV( key, value, query ));
 		},
-		escapes: options?.escapes ?? true,
-		multilines: options?.multilines ?? false,
-		types: options?.types ?? false,
+		escapes,
+		multilines,
+		types
 	});
 
 	return out;
 }
 
 /** Parses data into a regular javascript object.
- * @param data The text to parse.
- * @param env An object containing conditional values to filter keys with. (Ex. `{ '$XBOX': false }` will cause keys with the condition [$XBOX] to be ignored.)
+ * @param text The text to parse.
  * @param options Tokenization settings to pass to the core parser.
 */
-export function json( data: string, env: Record<string, boolean>={}, options?: SharedParseOptions ): unknown {
-	let out: JsonSet = { [PARENT]: null };
+export function json( text: string ): JsonSet<string>;
+export function json<T extends SharedParseOptions>( text: string, options: T ): T['types'] extends true ? JsonSet : JsonSet<string>;
+export function json( text: string, options?: SharedParseOptions<JsonSet> ): JsonSet {
+	let out: JsonSetInternal = { [PARENT]: null };
+	const escapes = options?.escapes ?? true;
+	const macros = options?.on_macro != undefined;
+	const queries = options?.on_query != undefined;
 
-	cparse( data, {
+	cparse( text, {
 		on_enter(key) {
 			out = out[key] = { [PARENT]: out };
 		},
@@ -62,10 +92,19 @@ export function json( data: string, env: Record<string, boolean>={}, options?: S
 			delete ref[PARENT];
 		},
 		on_key(key, value, query) {
-			if (query && (query in env) && !env[query]) return;
+			if (query && queries && !options!.on_query!(query))
+				return;
+			if (escapes) {
+				key = unescape(key);
+				value = unescape(value);
+			}
+			if (macros && key.charCodeAt(0) === Char['#']) {
+				options.on_macro!(key, value, out);
+				return;
+			}
 			out[key] = value;
 		},
-		escapes: options?.escapes ?? true,
+		escapes,
 		multilines: options?.multilines ?? true,
 		types: options?.types ?? true,
 	});

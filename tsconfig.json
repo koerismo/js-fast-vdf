@@ -1,13 +1,15 @@
 {
 	"compilerOptions": {
-		"module": "CommonJS",
+		"module": "esnext",
 		"target": "ESNext",
 		"rootDir": "src",
 		"outDir": "dist",
 		"lib": [ "DOM", "ES2021" ],
+		"skipLibCheck": true,
 		"declaration": true,
 		"alwaysStrict": true,
-		"strict": true
+		"strict": true,
+		"sourceMap": true
 	},
 	"include": [ "src/**/*" ]
 }

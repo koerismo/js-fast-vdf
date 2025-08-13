@@ -15,49 +15,48 @@ SteamAppId      620
 SearchPaths
 {
     Game        |gameinfo_path|.
-    Game        portal2_dlc2
+    Game        portal2
 }
 `);
 
-console.log(root.value('SteamAppId'));
 // 620
+console.log(root.value('SteamAppId'));
 
+// "portal2"
 console.log(root.dir('SearchPaths').pair('Game').value);
-// "portal2_dlc2"
+
+// Strict behaviour is enabled by default with all KeyVSet methods.
+// Since this pair does not exist, this call throws an error.
 
 try { root.pair('DoesntExist'); }
 catch(e) { console.warn(e.message) }
 // Pair with key "doesntexist" does not exist in set!
 
-// Strict behaviour is enabled by default with all KeyVSet methods.
-// Since this pair does not exist, this call throws an error.
-
-console.log(root.pair('DoesntExist', null));
-
 // The default value can be set to null to
 // disable this behaviour, instead returning null.
 
+console.log(root.pair('DoesntExist', null));
 
-root.dir('SearchPaths').factory()
+// The `dir`, `pair`, and `any` methods can be used to search the element for a matching child.
+// The `dirs`, `pairs`, and `all` methods work similarly, but return a filtered array of every match.
+
+const searchpaths = root.dir('SearchPaths')
+    .add(new KeyV('Game', 'portal2_dlc3'))
+    .add(new KeyV('Game', 'platform'));
+
+// Factory objects can also be used to quickly create keyvalue structures instead of `add`:
+
+searchpaths.factory()
     .pair('Game', 'portal2_dlc1')
-    .pair('Game', 'portal2')
+    .pair('Game', 'portal2_dlc2')
     .pair('Game', 'platform')
     .exit();
 
-// Factory objects can be used to quickly create keyvalue structures.
-// The above code is equivalent to the below:
-
-const sp = root.dir('SearchPaths');
-sp.add(new KeyV('Game', 'portal2_dlc1'));
-sp.add(new KeyV('Game', 'portal2'));
-sp.add(new KeyV('Game', 'platform'));
-
-
-// After you've created your structure, you can dump it as a formatted
+// After you've modified your structure, you can dump it as a formatted
 // string with the dump function.
 
 root.dump({
-    quote: 'auto',
+    quote: DumpQuotationType.Auto,
     escapes: false
 });
 ```
@@ -65,27 +64,14 @@ root.dump({
 
 # API
 
-## Breaking Changes
-
-### 2.0.0
-- The `types` and `multiline` options now default to false.
-- The `auto` quoting mode has been split into `auto` and `auto-typed`.
-	- `auto` behaves normally, quoting only values which strictly need to be quoted.
-	- `auto-typed` allows fast-vdf to quote string values that might be confused with non-string values. (ex. `"true"`, `"123"`)
-- The KeyVRoot/KeyVSet `.value(...)` method has been reworked to be less strict.
-- Methods for reading type-strict values have been added to KeyV. (`.int(...)`, `.float(...)`, `.string()`, `.bool()`, `.vector(...)`)
+### See the [changelog](./CHANGELOG.md) for a full list of API changes.
 
 ## Imports
-Note: This package, while written as an ES module, is compiled to CommonJS for backwards-compatibility. As such, the default export is emulated by including the contents of the `vdf` object in the main module.
 
 ```ts
-import vdf from 'fast-vdf';             // vdf.parse(), vdf.json(), vdf.KeyV, vdf.KeyVSet, ...
+import parse from 'fast-vdf';           // parse()
 import { vdf } from 'fast-vdf';         // vdf.parse(), vdf.json(), KeyV, KeyVSet, ...
 import { parse } from 'fast-vdf';       // parse(), json(), KeyV, KeyVSet, ...
-
-const vdf = require('fast-vdf');        // vdf.parse(), vdf.json(), vdf.KeyV, vdf.KeyVSet, ...
-const { vdf } = require('fast-vdf');    // vdf.parse(), vdf.json(), KeyV, KeyVSet, ...
-const { parse } = require('fast-vdf');  // parse(), json(), KeyV, KeyVSet, ...
 ```
 
 ## Functions
@@ -98,18 +84,16 @@ Parses data into a tree of `KeyV` objects.
 >
 > `options` The parser configuration.
 
-### vdf.**json**(data: string, env: Record<string, boolean>, options?: SharedParseOptions): Object
+### vdf.**json**(data: string, options?: SharedParseOptions): Object
 Parses data into a regular javascript object.
 
 > **Parameters**
 >
 > `data` The string to parse.
 >
-> `env` An object containing condition values. (Ex. `{ "$XBOX": false }` will cause keys with the condition `[$XBOX]` to be ignored.)
->
 > `options` The parser configuration.
 
-### core.**parse**(text: string, options: ParseOptions): void
+### core.**parse**(text: string, options: CoreParseOptions): void
 The internal API used by the parse.xyz functions.
 
 > **Parameters**
@@ -123,6 +107,8 @@ The internal API used by the parse.xyz functions.
 ### SharedParseOptions
 ```ts
 interface SharedParseOptions {
+	on_macro?:   (key: string, value: ValueType, context: T) => void; // undefined
+	on_query?:   (query: string) => boolean;                          // undefined
     escapes?:    boolean; // true
     multilines?: boolean; // false
     types?:      boolean; // false
@@ -132,16 +118,16 @@ interface SharedParseOptions {
 ### DumpFormatOptions
 ```ts
 interface DumpFormatOptions {
-    indent?:  string;                       // '\t'
-    quote?:   'always'|'auto'|'auto-typed'; // 'always'
-    escapes?: boolean;                      // true
+    escapes?: boolean;      // true
+    indent?:  string;       // '\t'
+    quote?:   0 | 1 | 2;    // DumpQuotationType.Always (0)
 }
 ```
 
-### ParseOptions
+### CoreParseOptions
 ```ts
-interface ParseOptions {
-    on_key:     (key: string, value: string, query?: string) => void;
+interface CoreParseOptions {
+    on_key:     (key: string, value: ValueType, query?: string) => void;
     on_enter:   (key: string) => void;
     on_exit:    () => void;
     escapes:    boolean;

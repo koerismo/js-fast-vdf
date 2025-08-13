@@ -1,6 +1,5 @@
 node_modules/
 coverage/
 test/
-src/
 
 **/.DS_STORE

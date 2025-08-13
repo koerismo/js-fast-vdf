@@ -1,72 +1,99 @@
-export type KeyVChild<V extends ValueType = ValueType> = KeyV<V>|KeyVSet<V>;
+import { Char } from './core.js';
 
-export type ValueType = string|number|boolean;
+export type KeyVChild<V extends ValueType = ValueType> = KeyV<V> | KeyVSet<V>;
 
+export type ValueType = string | number | boolean;
+
+/** Describes a generic parsing error. */
 export class ParseError extends Error {
 	name = 'ParseError';
 }
 
+export type DumpQuotationType = typeof DumpQuotationType[keyof typeof DumpQuotationType];
+export const DumpQuotationType = {
+	/** Quote all keys and values, regardless of necessity. This is the fastest option, as all checks are bypassed. */
+	Always: 0,
+	/** Quote keys and values only when strictly required. */
+	Auto: 1,
+	/** Quote all strings covered by `Auto`, and also values which could be confused with non-string values. */
+	AutoTyped: 2,
+} as const;
+
 export interface DumpFormatOptions {
 	indent:   string;
-	quote:    'always'|'auto'|'auto-typed';
+	quote:    DumpQuotationType;
 	escapes:  boolean;
 }
 
 type WriteFunction = (value: string) => void;
 
+/** The maximum number of strings allowed to be concatenated in one call.
+ * Going above 64,000 ocasionally causes crashes, so it is capped there by default. */
 const MAX_CONCAT_SIZE = 64000;
 
 const DumpFormatDefaults: DumpFormatOptions = {
 	indent:   '\t',
-	quote:    'always',
-	escapes:  false
+	quote:    DumpQuotationType.Always,
+	escapes:  true
 }
 
-// TODO: Implement unescaping strings on import.
-// const RE_UNESCAPE = /\\(.)/g;
-// function unescape(value: string): string {
-// 	return value.replace(RE_UNESCAPE, '$1');
-// }
+const RE_NEEDS_QUOTES = /[\s{}]/;
 
-function needs_quotes(value: string, is_value: boolean, type_strict: boolean): boolean {
+/** Returns whether surrounding quotes are necessary for the given unescaped string. Used by {@link escape}(...) */
+export function needs_quotes(value: string, is_value: boolean, mode: DumpQuotationType): boolean {
 	if (!value.length) return true;
-	if (value.includes(' ')) return true;
-	if (!is_value && value.startsWith('[') && value.endsWith(']')) return true;
+	if (RE_NEEDS_QUOTES.test(value)) return true;
+	if (!is_value && value.charCodeAt(0) === Char['['] && value.charCodeAt(value.length-1) === Char[']']) return true;
 
 	// Detect values which could be interpreted as non-strings.
-	if (type_strict && is_value && (!isNaN(+value) || value === 'true' || value === 'false')) return true;
-
+	if (mode === DumpQuotationType.AutoTyped && is_value && (!isNaN(+value) || value === 'true' || value === 'false')) return true;
 	return false;
 }
 
-function escape(value: ValueType, options: DumpFormatOptions, is_value: boolean): string {
+/** Returns a KV-ready string from the provided value, using the following rules:
+ *  - If escapes are enabled...
+ *  	- Replace any of the following characters with their escape sequence:
+ *  		- newline = `\n`, return = `\r`, tab = `\t`, backslash = `\\`, quote = `\"`
+ *  - If escapes are disabled ...
+ *  	- If the string contains any of the following characters, it cannot be sanitized and will throw an error:
+ *  		- quote (`"`)
+ *  - Quotes will be applied when a tab, newline, return, space, or opening/closing bracket is present, or if the string is empty.
+ *  	- If this is a key, quotes are also required when the string is surrounded by square brackets.
+ */
+export function escape(value: ValueType, options: DumpFormatOptions, is_value: boolean): string {
 	if (typeof value !== 'string') return value.toString();
-	const quote = options.quote === 'always' || needs_quotes(value, is_value, options.quote === 'auto-typed');
 
-	if (!options.escapes) {
-		if (quote) return '"' + value + '"';
-		return value;
-	}
-
-	if (quote) {
-		const escaped = value
+	if (options.escapes) {
+		value = value
 			.replaceAll('\\', '\\\\')
+			.replaceAll('\n', '\\n')
+			.replaceAll('\t', '\\t')
 			.replaceAll('"', '\\"');
-		return '"' + escaped + '"';
+	}
+	else {
+		if (value.includes('"')) throw Error(`Attempted to encode quotes without escapes enabled!`);
 	}
 
-	return value
-		.replaceAll('\\', '\\\\')
-		.replaceAll('"', '\\"')
-		.replaceAll('{', '\\{')
-		.replaceAll('}', '\\}');
+	const quote = options.quote === DumpQuotationType.Always || needs_quotes(value, is_value, options.quote);
+	if (quote) return '"' + value + '"';
+	return value;
 }
 
+/** Takes a string and collapses all escape sequences. */
+export function unescape<T extends ValueType>(value: T): T {
+	if (typeof value !== 'string') return value;
+	if (!value.includes('\\')) return value;
+	return value
+		.replaceAll('\\n', '\n')
+		.replaceAll('\\t', '\t')
+		.replaceAll('\\"', '"')
+		.replaceAll('\\\\', '\\') as T;
+}
 
 /** Defines common methods between KeyValueSet and KeyValueRoot. */
 class KeyVSetCommon<V extends ValueType = ValueType> {
 
-	#values:	Array<KeyVChild<V>> = [];
+	#values:	KeyVChild<V>[] = [];
 	parent:		KeyVSetCommon|null = null;
 
 	/** Retrieves any child of this set with a matching key. This function throws an error when no child is found unless a default value is defined. */
@@ -175,10 +202,21 @@ class KeyVSetCommon<V extends ValueType = ValueType> {
 		return true;
 	}
 
-	/** Adds a child to this set. */
+	/** Adds a child to this set. If adding multiple children, use {@link insert()} instead! */
 	add( kv: KeyVChild<V> ): this {
 		kv.parent = this;
 		this.#values.push( kv );
+		return this;
+	}
+
+	/** Adds multiple children to this set in a single call. If adding a single child, use {@link add()} instead! */
+	insert( kvs: KeyVChild<V>[] ): this {
+		let idx = this.#values.length;
+		this.#values.length += kvs.length;
+		for (let i=0; i<kvs.length; i++, idx++) {
+			this.#values[idx] = kvs[i];
+			kvs[i].parent = this;
+		}
 		return this;
 	}
 
@@ -322,10 +360,11 @@ export class KeyV<V extends ValueType = ValueType> {
 
 /** A class for KeyVSetCommon quick tree creation. */
 class KeyVFactory {
+	origin: KeyVSetCommon;
 	source: KeyVSetCommon;
 
 	constructor(source: KeyVSetCommon) {
-		this.source = source;
+		this.source = this.origin = source;
 	}
 
 	/** Creates to a new directory and moves into it. */
@@ -353,6 +392,6 @@ class KeyVFactory {
 
 	/** Exits the factory. */
 	exit(): KeyVSetCommon {
-		return this.source;
+		return this.origin;
 	}
 }
