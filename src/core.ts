@@ -33,10 +33,13 @@ function parse_value( value: string ): string|number|boolean {
 	return num;
 }
 
-function is_term( code: number ) {
+function is_space( code: number ) {
 	return (
-		code === Char[' '] || code === Char['\t'] || code === Char['\r'] || code === Char['\n'] ||
-		code === Char['{'] || code === Char['}'] );
+		code === Char[' '] ||
+		code === Char['\t'] ||
+		code === Char['\r'] ||
+		code === Char['\n']
+	);
 }
 
 /** Parses the given string and calls the provided callbacks as they are processed. */
@@ -51,7 +54,7 @@ export function parse( text: string, options: CoreParseOptions ): void {
 		const c = text.charCodeAt(i);
 
 		// Spacing ( tab, space, \n, \r )
-		if ( c === Char[' '] || c === Char['\t'] || c === Char['\n'] || c === Char['\r'] ) continue;
+		if ( is_space(c) ) continue;
 
 		// Start bracket
 		if ( c === Char['{'] ) {
@@ -136,7 +139,7 @@ export function parse( text: string, options: CoreParseOptions ): void {
 				i++;
 				const c = text.charCodeAt(i);
 				if ( escapes && c === Char['\\'] ) { i++; continue; }
-				if ( is_term(c) ) break;
+				if ( is_space(c) ) break;
 			}
 
 			const chunk = text.slice(start, i);
