@@ -93,8 +93,8 @@ export function unescape<T extends ValueType>(value: T): T {
 /** Defines common methods between KeyValueSet and KeyValueRoot. */
 class KeyVSetCommon<V extends ValueType = ValueType> {
 
-	#values:	KeyVChild<V>[] = [];
-	parent:		KeyVSetCommon|null = null;
+	protected _values:	KeyVChild<V>[] = [];
+	public parent:		KeyVSetCommon|null = null;
 
 	/** Retrieves any child of this set with a matching key. This function throws an error when no child is found unless a default value is defined. */
 	any( key: string ): KeyVChild<V>;
@@ -102,8 +102,8 @@ class KeyVSetCommon<V extends ValueType = ValueType> {
 	any<T extends any>( key: string, default_value?: T ): KeyVChild<V>|T {
 		key = key.toLowerCase();
 
-		for ( let i=this.#values.length-1; i>-1; i-- ) {
-			const child = this.#values[i];
+		for ( let i=this._values.length-1; i>-1; i-- ) {
+			const child = this._values[i];
 			if (child.key.toLowerCase() === key) return child;
 		}
 
@@ -113,11 +113,11 @@ class KeyVSetCommon<V extends ValueType = ValueType> {
 
 	/** Returns an array of all children within this set with matching keys, or all children if no key is provided. */
 	all( key?: string ): KeyVChild<V>[] {
-		if ( key == undefined ) return this.#values;
+		if ( key == undefined ) return this._values;
 		key = key.toLowerCase();
 
 		const out = [];
-		for ( const child of this.#values ) {
+		for ( const child of this._values ) {
 			if (child.key.toLowerCase() === key) out.push( child );
 		}
 
@@ -130,8 +130,8 @@ class KeyVSetCommon<V extends ValueType = ValueType> {
 	dir<T extends any>( key: string, default_value?: T ): KeyVSet<V>|T {
 		key = key.toLowerCase();
 
-		for ( let i=this.#values.length-1; i>-1; i-- ) {
-			const child = this.#values[i];
+		for ( let i=this._values.length-1; i>-1; i-- ) {
+			const child = this._values[i];
 			if (child instanceof KeyVSet && child.key.toLowerCase() === key) return child;
 		}
 
@@ -143,7 +143,7 @@ class KeyVSetCommon<V extends ValueType = ValueType> {
 		if (key) key = key.toLowerCase();
 
 		const out = [];
-		for ( const child of this.#values ) {
+		for ( const child of this._values ) {
 			if (child instanceof KeyVSet && (key == null || child.key.toLowerCase() === key)) out.push(child);
 		}
 
@@ -156,8 +156,8 @@ class KeyVSetCommon<V extends ValueType = ValueType> {
 	pair<D extends unknown>( key: string, default_value?: D ): KeyV<V>|D|never {
 		key = key.toLowerCase();
 
-		for ( let i=this.#values.length-1; i>-1; i-- ) {
-			const child = this.#values[i];
+		for ( let i=this._values.length-1; i>-1; i-- ) {
+			const child = this._values[i];
 			if (child instanceof KeyV && child.key.toLowerCase() === key) return child;
 		}
 
@@ -169,7 +169,7 @@ class KeyVSetCommon<V extends ValueType = ValueType> {
 		if (key) key = key.toLowerCase();
 
 		const out = [];
-		for ( const child of this.#values ) {
+		for ( const child of this._values ) {
 			if (child instanceof KeyV && (key == null || child.key.toLowerCase() === key)) out.push(child);
 		}
 
@@ -187,17 +187,17 @@ class KeyVSetCommon<V extends ValueType = ValueType> {
 
 	/** Deletes a child object if the key is matched. Returns true if a child was deleted. If fast is explicitly enabled, the keys will be reordered to make the deletion O(1). */
 	delete( kv: KeyVChild<V>, fast: boolean=false ): boolean {
-		const ind = this.#values.indexOf(kv);
+		const ind = this._values.indexOf(kv);
 		if (ind === -1) return false;
 
 		if (!fast) {
-			this.#values.splice(ind, 1);
+			this._values.splice(ind, 1);
 			return true;
 		}
 
 		// Adapted from https://stackoverflow.com/a/54270177
-		this.#values[ind] = this.#values[this.#values.length-1];
-		this.#values.pop();
+		this._values[ind] = this._values[this._values.length-1];
+		this._values.pop();
 
 		return true;
 	}
@@ -205,16 +205,16 @@ class KeyVSetCommon<V extends ValueType = ValueType> {
 	/** Adds a child to this set. If adding multiple children, use {@link insert()} instead! */
 	add( kv: KeyVChild<V> ): this {
 		kv.parent = this;
-		this.#values.push( kv );
+		this._values.push( kv );
 		return this;
 	}
 
 	/** Adds multiple children to this set in a single call. If adding a single child, use {@link add()} instead! */
 	insert( kvs: KeyVChild<V>[] ): this {
-		let idx = this.#values.length;
-		this.#values.length += kvs.length;
+		let idx = this._values.length;
+		this._values.length += kvs.length;
 		for (let i=0; i<kvs.length; i++, idx++) {
-			this.#values[idx] = kvs[i];
+			this._values[idx] = kvs[i];
 			kvs[i].parent = this;
 		}
 		return this;
@@ -249,19 +249,17 @@ class KeyVSetCommon<V extends ValueType = ValueType> {
 	}
 
 	__dump__( format: DumpFormatOptions, indent: string, write: WriteFunction ): void {
-		for ( const child of this.#values ) {
+		for ( const child of this._values ) {
 			child.__dump__(format, indent, write);
 		}
 	}
 }
 
 export class KeyVSet<V extends ValueType = ValueType> extends KeyVSetCommon<V> {
-
-	key:	string;
-
-	constructor( key: string ) {
+	constructor(
+		public key: string,
+	) {
 		super();
-		this.key = key;
 	}
 
 	__dump__(format: DumpFormatOptions, indent: string, write: WriteFunction): void {
@@ -281,18 +279,12 @@ export class KeyVRoot<V extends ValueType = ValueType> extends KeyVSetCommon<V> 
 
 
 export class KeyV<V extends ValueType = ValueType> {
-
-	key:	string;
-	value:	V;
-	query:	string|null;
-	parent:	KeyVSetCommon|null;
-
-	constructor( key: string, value: V, query: string|null=null ) {
-		this.key	= key;
-		this.value	= value;
-		this.query	= query;
-		this.parent	= null;
-	}
+	constructor(
+		public key: string,
+		public value: V,
+		public query: string | null = null,
+		public parent: KeyVSetCommon | null = null
+	) { }
 
 	__dump__(format: DumpFormatOptions, indent: string, write: WriteFunction): void {
 		write(
