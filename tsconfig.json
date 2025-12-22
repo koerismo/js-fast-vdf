@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"module": "esnext",
-		"target": "ESNext",
+		"target": "esnext",
 		"rootDir": "src",
 		"outDir": "dist",
 		"lib": [ "DOM", "ES2021" ],
