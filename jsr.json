@@ -1,7 +1,7 @@
 {
 	"name": "@koerismo/fast-vdf",
 	"description": "Your average javascript KeyValues processing library, as fast as parsable!",
-	"version": "3.0.0",
+	"version": "3.1.0",
 	"license": "ISC",
 	"author": "Koerismo",
 	"repository": { "url": "github:koerismo/js-fast-vdf" },

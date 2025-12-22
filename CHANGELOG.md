@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.0]
+### Changed
+- The `[` and `]` characters can now be used within an unquoted string.
+- The `vdf` and `core` module exports have been removed from the primary module.
+	- `import * as vdf` should now be used to have `vdf` as a namespace.
+	- The core module has been exposed through the `fast-vdf/core` import.
+
 ## [3.0.0]
 ### Changed
 - This module has been reconfigured to transpile for ESM. The original code and sourcemaps are also now included.
