@@ -13,9 +13,14 @@
 		"keyvalues",
 		"valve"
 	],
-	"main": "dist/index.js",
+	"main": "./dist/index.js",
+	"exports": {
+		".": "./dist/index.js",
+		"./core": "./dist/core.js"
+	},
 	"files": [
-		"dist/"
+		"dist/",
+		"src/"
 	],
 	"scripts": {
 		"build": "tsc",

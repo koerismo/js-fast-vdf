@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { vdf } from '../../dist/index.js';
+import * as vdf from '../../dist/index.js';
 import { DumpQuotationType } from '../../dist/types.js';
 
 const TRIALS = 20;
@@ -12,13 +12,13 @@ function trial(parseOpts) {
 	for ( let i=0; i<TRIALS; i++ ) {
 		dummy_in = vdf.parse(vmfString, parseOpts);
 	}
-	
+
 	const end_parse = performance.now();
-	
+
 	for ( let i=0; i<TRIALS; i++ ) {
 		dummy_out = dummy_in.dump({ quote: DumpQuotationType.Auto, indent: '\t', escapes: parseOpts.escapes });
 	}
-	
+
 	const end_dump = performance.now();
 
 	console.log(`

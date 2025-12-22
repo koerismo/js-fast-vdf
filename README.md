@@ -8,9 +8,9 @@ npm i fast-vdf
 
 # Usage
 ```ts
-import { vdf, KeyV, KeyVSet } from 'fast-vdf';
+import { parse as parseVdf, KeyV, DumpQuotationType } from 'fast-vdf';
 
-const root = vdf.parse(`
+const root = parseVdf(`
 SteamAppId      620
 SearchPaths
 {
@@ -61,21 +61,21 @@ root.dump({
 });
 ```
 
-
-# API
-
-### See the [changelog](./CHANGELOG.md) for a full list of API changes.
-
-## Imports
+## Importing
 
 ```ts
 import parse from 'fast-vdf';           // parse()
-import { vdf } from 'fast-vdf';         // vdf.parse(), vdf.json(), KeyV, KeyVSet, ...
+import * as vdf from 'fast-vdf';        // vdf.parse(), vdf.KeyV, vdf.KeyVSet, ...
 import { parse } from 'fast-vdf';       // parse(), json(), KeyV, KeyVSet, ...
 ```
 
-## Functions
-### vdf.**parse**(data: string, options?: SharedParseOptions): KeyVRoot
+# API
+
+#### See the [changelog](./CHANGELOG.md) for a full list of API changes.
+
+## Main Module
+
+### **parse**(data: string, options?: SharedParseOptions): KeyVRoot
 Parses data into a tree of `KeyV` objects.
 
 > **Parameters**
@@ -84,7 +84,7 @@ Parses data into a tree of `KeyV` objects.
 >
 > `options` The parser configuration.
 
-### vdf.**json**(data: string, options?: SharedParseOptions): Object
+### **json**(data: string, options?: SharedParseOptions): Object
 Parses data into a regular javascript object.
 
 > **Parameters**
@@ -93,22 +93,11 @@ Parses data into a regular javascript object.
 >
 > `options` The parser configuration.
 
-### core.**parse**(text: string, options: CoreParseOptions): void
-The internal API used by the parse.xyz functions.
-
-> **Parameters**
->
-> `text` The string to parse.
->
-> `options` The parser configuration.
-
-## Types
-
 ### SharedParseOptions
 ```ts
 interface SharedParseOptions {
-	on_macro?:   (key: string, value: ValueType, context: T) => void; // undefined
-	on_query?:   (query: string) => boolean;                          // undefined
+    on_macro?:   (key: string, value: ValueType, context: T) => void; // undefined
+    on_query?:   (query: string) => boolean;                          // undefined
     escapes?:    boolean; // true
     multilines?: boolean; // false
     types?:      boolean; // false
@@ -124,7 +113,17 @@ interface DumpFormatOptions {
 }
 ```
 
-### CoreParseOptions
+## Core Module
+
+### **parse**(text: string, options: CoreParseOptions): void
+The internal API used by the parse.xyz functions.
+
+> **Parameters**
+>
+> `text` The string to parse.
+>
+> `options` The parser configuration.
+
 ```ts
 interface CoreParseOptions {
     on_key:     (key: string, value: ValueType, query?: string) => void;
