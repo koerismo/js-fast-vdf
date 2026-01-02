@@ -6,7 +6,9 @@
 	"author": "Koerismo",
 	"repository": { "url": "github:koerismo/js-fast-vdf" },
 	"keywords": [ "vdf", "keyvalues", "valve" ],
-	
-	"exports": "./src/index.ts",
+	"exports": {
+		".": "./src/index.ts",
+		"./core": "./src/core.ts"
+	},
 	"exclude": ["/", "!src/", "!README.md"]
 }
