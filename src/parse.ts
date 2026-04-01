@@ -1,7 +1,7 @@
 import { Char, parse as cparse } from './core.js';
 import { KeyV, KeyVRoot, KeyVSet, ParseError, ValueType, unescape } from './types.js';
 
-export interface SharedParseOptions<T = KeyVSet|KeyVRoot> {
+export interface SharedParseOptions<T = KeyVSet | KeyVRoot> {
 	/** Optional handler for `#macro` syntax keyvalues. If no handler is provided, macros will be treated as standard keys. */
 	on_macro?: (key: string, value: ValueType, context: T) => void;
 	/** Optional handler for `[query]` syntax. If present, keyvalues with `false` queries will be omitted. */
@@ -15,12 +15,12 @@ export interface SharedParseOptions<T = KeyVSet|KeyVRoot> {
 }
 
 export interface JsonSet<T = ValueType> {
-	[key: string]: JsonSet|T;
+	[key: string]: JsonSet<T> | T;
 }
 
 interface JsonSetInternal {
-	[PARENT]?: null|JsonSet;
-	[key: string]: JsonSetInternal|ValueType;
+	[PARENT]?: JsonSet;
+	[key: string]: JsonSetInternal | ValueType;
 }
 
 // Used to track parent nodes in JSON output
@@ -33,7 +33,7 @@ const PARENT = Symbol('parent');
 export function parse( text: string ): KeyVRoot<string>;
 export function parse<T extends SharedParseOptions>( text: string, options: T ): T['types'] extends true ? KeyVRoot : KeyVRoot<string>;
 export function parse( text: string, options?: SharedParseOptions ): KeyVRoot {
-	let out: KeyVSet|KeyVRoot = new KeyVRoot();
+	let out: KeyVSet | KeyVRoot = new KeyVRoot();
 	const macros = options?.on_macro != undefined;
 	const queries = options?.on_query != undefined;
 	const escapes = options?.escapes ?? true;
@@ -76,7 +76,7 @@ export function parse( text: string, options?: SharedParseOptions ): KeyVRoot {
 export function json( text: string ): JsonSet<string>;
 export function json<T extends SharedParseOptions>( text: string, options: T ): T['types'] extends true ? JsonSet : JsonSet<string>;
 export function json( text: string, options?: SharedParseOptions<JsonSet> ): JsonSet {
-	let out: JsonSetInternal = { [PARENT]: null };
+	let out: JsonSetInternal = {};
 	const escapes = options?.escapes ?? true;
 	const macros = options?.on_macro != undefined;
 	const queries = options?.on_query != undefined;
@@ -87,7 +87,7 @@ export function json( text: string, options?: SharedParseOptions<JsonSet> ): Jso
 		},
 		on_exit() {
 			const ref = out;
-			if ( !out[PARENT] ) throw new ParseError( 'Attempted to exit past root keyvalue!' );
+			if (!out[PARENT]) throw new ParseError( 'Attempted to exit past root keyvalue!' );
 			out = out[PARENT];
 			delete ref[PARENT];
 		},

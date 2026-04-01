@@ -78,7 +78,7 @@ export function parse( text: string, options: CoreParseOptions ): void {
 		// Quoted string
 		if ( c === Char['"'] ) {
 			const start = i+1;
-			
+
 			if (escapes) {
 				let n: number;
 				while (i < length) {
