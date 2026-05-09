@@ -1,7 +1,9 @@
 import { Char } from './core.js';
 
+/** An arbitrary KeyValues child element. */
 export type KeyVChild<V extends ValueType = ValueType> = KeyV<V> | KeyVSet<V>;
 
+/** An arbitrary KeyValues primitive. */
 export type ValueType = string | number | boolean;
 
 /** Describes a generic parsing error. */
@@ -19,6 +21,7 @@ export const DumpQuotationType = {
 	AutoTyped: 2,
 } as const;
 
+/** Formatting options for stringify-ing KeyValues data. */
 export interface DumpFormatOptions {
 	indent:   string;
 	quote:    DumpQuotationType;
@@ -255,6 +258,15 @@ class KeyVSetCommon<V extends ValueType = ValueType> {
 	}
 }
 
+/**
+ * A KeyValues set.
+ * @example
+ * ```
+ * "Key"
+ * {
+ *     // ...
+ * }
+ */
 export class KeyVSet<V extends ValueType = ValueType> extends KeyVSetCommon<V> {
 	constructor(
 		public key: string,
@@ -274,10 +286,16 @@ export class KeyVSet<V extends ValueType = ValueType> extends KeyVSetCommon<V> {
 	}
 }
 
-
+/** The root of a KeyValues document. */
 export class KeyVRoot<V extends ValueType = ValueType> extends KeyVSetCommon<V> {}
 
-
+/**
+ * A KeyValues pair.
+ * @example
+ * ```
+ * "Key" "Value"
+ * ```
+ */
 export class KeyV<V extends ValueType = ValueType> {
 	constructor(
 		public key: string,

@@ -1,5 +1,6 @@
 import { ParseError, type ValueType } from './types.js';
 
+/** Configuration options for the core tokenizer/parser. */
 export interface CoreParseOptions {
 	on_key:		(key:string, value:ValueType, query?:string) => void;
 	on_enter:	(key:string) => void;
@@ -9,6 +10,7 @@ export interface CoreParseOptions {
 	types:      boolean;
 }
 
+/** Control characters for tokenization. */
 export const enum Char {
 	'\t' = 9,
 	'\n' = 10,
@@ -25,6 +27,7 @@ export const enum Char {
 	'}' = 125,
 }
 
+/** Converts a string into other primitives when possible, otherwise returning the original string. */
 function parse_value( value: string ): string|number|boolean {
 	if (value === 'true') return true;
 	if (value === 'false') return false;
@@ -33,6 +36,7 @@ function parse_value( value: string ): string|number|boolean {
 	return num;
 }
 
+/** Returns whether the given charcode is a whitespace character. (A space, tab, carriage-return, or newline) */
 function is_space( code: number ) {
 	return (
 		code === Char[' '] ||

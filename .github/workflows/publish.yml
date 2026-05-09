@@ -1,0 +1,35 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish_npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+  
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 'latest'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install
+        run: npm install
+      - name: Build
+        run: npm run build-npm
+      - name: Publish
+        run: npm publish --access public
+
+  publish_jsr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Publish package
+        run: npx jsr publish

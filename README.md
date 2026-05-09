@@ -1,5 +1,5 @@
 # fast-vdf
-Your average javascript KeyValues processing library, as fast as parsable!
+Your average JavaScript KeyValues processing library, as fast as parsable!
 
 # Installation
 ```

@@ -1,6 +1,7 @@
 import { Char, parse as cparse } from './core.js';
 import { KeyV, KeyVRoot, KeyVSet, ParseError, ValueType, unescape } from './types.js';
 
+/** Common parse options for the {@link parse}(...) and {@link json}(...) methods. Extends the core tokenizer/parser configuration. */
 export interface SharedParseOptions<T = KeyVSet | KeyVRoot> {
 	/** Optional handler for `#macro` syntax keyvalues. If no handler is provided, macros will be treated as standard keys. */
 	on_macro?: (key: string, value: ValueType, context: T) => void;
@@ -14,6 +15,7 @@ export interface SharedParseOptions<T = KeyVSet | KeyVRoot> {
 	types?: boolean;
 }
 
+/** A parsed JSON object. */
 export interface JsonSet<T = ValueType> {
 	[key: string]: JsonSet<T> | T;
 }
