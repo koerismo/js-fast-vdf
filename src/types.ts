@@ -1,3 +1,8 @@
+/**
+ * Contains classes used to represent KeyValues structures nondestructively and dump to strings.
+ * @module
+ */
+
 import { Char } from './core.js';
 
 /** An arbitrary KeyValues child element. */
@@ -11,7 +16,7 @@ export class ParseError extends Error {
 	name = 'ParseError';
 }
 
-export type DumpQuotationType = typeof DumpQuotationType[keyof typeof DumpQuotationType];
+export type DumpQuotationType = (typeof DumpQuotationType)[keyof typeof DumpQuotationType];
 export const DumpQuotationType = {
 	/** Quote all keys and values, regardless of necessity. This is the fastest option, as all checks are bypassed. */
 	Always: 0,
@@ -23,9 +28,9 @@ export const DumpQuotationType = {
 
 /** Formatting options for stringify-ing KeyValues data. */
 export interface DumpFormatOptions {
-	indent:   string;
-	quote:    DumpQuotationType;
-	escapes:  boolean;
+	indent: string;
+	quote: DumpQuotationType;
+	escapes: boolean;
 }
 
 type WriteFunction = (value: string) => void;
@@ -35,10 +40,10 @@ type WriteFunction = (value: string) => void;
 const MAX_CONCAT_SIZE = 64000;
 
 const DumpFormatDefaults: DumpFormatOptions = {
-	indent:   '\t',
-	quote:    DumpQuotationType.Always,
-	escapes:  true
-}
+	indent: '\t',
+	quote: DumpQuotationType.Always,
+	escapes: true,
+};
 
 const RE_NEEDS_QUOTES = /[\s{}]/;
 
@@ -46,10 +51,20 @@ const RE_NEEDS_QUOTES = /[\s{}]/;
 export function needs_quotes(value: string, is_value: boolean, mode: DumpQuotationType): boolean {
 	if (!value.length) return true;
 	if (RE_NEEDS_QUOTES.test(value)) return true;
-	if (!is_value && value.charCodeAt(0) === Char['['] && value.charCodeAt(value.length-1) === Char[']']) return true;
+	if (
+		!is_value &&
+		value.charCodeAt(0) === Char['['] &&
+		value.charCodeAt(value.length - 1) === Char[']']
+	)
+		return true;
 
 	// Detect values which could be interpreted as non-strings.
-	if (mode === DumpQuotationType.AutoTyped && is_value && (!isNaN(+value) || value === 'true' || value === 'false')) return true;
+	if (
+		mode === DumpQuotationType.AutoTyped &&
+		is_value &&
+		(!isNaN(+value) || value === 'true' || value === 'false')
+	)
+		return true;
 	return false;
 }
 
@@ -72,12 +87,12 @@ export function escape(value: ValueType, options: DumpFormatOptions, is_value: b
 			.replaceAll('\n', '\\n')
 			.replaceAll('\t', '\\t')
 			.replaceAll('"', '\\"');
-	}
-	else {
+	} else {
 		if (value.includes('"')) throw Error(`Attempted to encode quotes without escapes enabled!`);
 	}
 
-	const quote = options.quote === DumpQuotationType.Always || needs_quotes(value, is_value, options.quote);
+	const quote =
+		options.quote === DumpQuotationType.Always || needs_quotes(value, is_value, options.quote);
 	if (quote) return '"' + value + '"';
 	return value;
 }
@@ -95,101 +110,105 @@ export function unescape<T extends ValueType>(value: T): T {
 
 /** Defines common methods between KeyValueSet and KeyValueRoot. */
 class KeyVSetCommon<V extends ValueType = ValueType> {
-
-	protected _values:	KeyVChild<V>[] = [];
-	public parent:		KeyVSetCommon|null = null;
+	protected _values: KeyVChild<V>[] = [];
+	public parent: KeyVSetCommon | null = null;
 
 	/** Retrieves any child of this set with a matching key. This function throws an error when no child is found unless a default value is defined. */
-	any( key: string ): KeyVChild<V>;
-	any<T extends any>( key: string, default_value?: T ): KeyVChild<V>|T;
-	any<T extends any>( key: string, default_value?: T ): KeyVChild<V>|T {
+	any(key: string): KeyVChild<V>;
+	any<T extends any>(key: string, default_value?: T): KeyVChild<V> | T;
+	any<T extends any>(key: string, default_value?: T): KeyVChild<V> | T {
 		key = key.toLowerCase();
 
-		for ( let i=this._values.length-1; i>-1; i-- ) {
+		for (let i = this._values.length - 1; i > -1; i--) {
 			const child = this._values[i];
 			if (child.key.toLowerCase() === key) return child;
 		}
 
-		if (default_value === undefined) throw new Error(`Child with key "${key}" does not exist in set!`);
+		if (default_value === undefined)
+			throw new Error(`Child with key "${key}" does not exist in set!`);
 		return default_value;
 	}
 
 	/** Returns an array of all children within this set with matching keys, or all children if no key is provided. */
-	all( key?: string ): KeyVChild<V>[] {
-		if ( key == undefined ) return this._values;
+	all(key?: string): KeyVChild<V>[] {
+		if (key == undefined) return this._values;
 		key = key.toLowerCase();
 
 		const out = [];
-		for ( const child of this._values ) {
-			if (child.key.toLowerCase() === key) out.push( child );
+		for (const child of this._values) {
+			if (child.key.toLowerCase() === key) out.push(child);
 		}
 
 		return out;
 	}
 
 	/** Retrieves a set within this set. This function throws an error when no set is found unless a default value is defined. */
-	dir( key: string ): KeyVSet<V>;
-	dir<T extends any>( key: string, default_value?: T ): KeyVSet<V>|T;
-	dir<T extends any>( key: string, default_value?: T ): KeyVSet<V>|T {
+	dir(key: string): KeyVSet<V>;
+	dir<T extends any>(key: string, default_value?: T): KeyVSet<V> | T;
+	dir<T extends any>(key: string, default_value?: T): KeyVSet<V> | T {
 		key = key.toLowerCase();
 
-		for ( let i=this._values.length-1; i>-1; i-- ) {
+		for (let i = this._values.length - 1; i > -1; i--) {
 			const child = this._values[i];
 			if (child instanceof KeyVSet && child.key.toLowerCase() === key) return child;
 		}
 
-		if (default_value === undefined) throw new Error(`Subset with key "${key}" does not exist in set!`);
+		if (default_value === undefined)
+			throw new Error(`Subset with key "${key}" does not exist in set!`);
 		return default_value;
 	}
 
-	dirs( key?: string ): KeyVSet<V>[] {
+	dirs(key?: string): KeyVSet<V>[] {
 		if (key) key = key.toLowerCase();
 
 		const out = [];
-		for ( const child of this._values ) {
-			if (child instanceof KeyVSet && (key == null || child.key.toLowerCase() === key)) out.push(child);
+		for (const child of this._values) {
+			if (child instanceof KeyVSet && (key == null || child.key.toLowerCase() === key))
+				out.push(child);
 		}
 
 		return out;
 	}
 
 	/** Retrieves a pair within this set. This function throws an error when no pair is found unless a default value is defined. */
-	pair<D extends undefined>( key: string, default_value?: D ): KeyV<V>|never;
-	pair<D extends unknown>( key: string, default_value?: D ): KeyV<V>|D;
-	pair<D extends unknown>( key: string, default_value?: D ): KeyV<V>|D|never {
+	pair<D extends undefined>(key: string, default_value?: D): KeyV<V> | never;
+	pair<D extends unknown>(key: string, default_value?: D): KeyV<V> | D;
+	pair<D extends unknown>(key: string, default_value?: D): KeyV<V> | D | never {
 		key = key.toLowerCase();
 
-		for ( let i=this._values.length-1; i>-1; i-- ) {
+		for (let i = this._values.length - 1; i > -1; i--) {
 			const child = this._values[i];
 			if (child instanceof KeyV && child.key.toLowerCase() === key) return child;
 		}
 
-		if (default_value === undefined) throw new Error(`Pair with key "${key}" does not exist in set!`);
+		if (default_value === undefined)
+			throw new Error(`Pair with key "${key}" does not exist in set!`);
 		return default_value;
 	}
 
-	pairs( key?: string ): KeyV<V>[] {
+	pairs(key?: string): KeyV<V>[] {
 		if (key) key = key.toLowerCase();
 
 		const out = [];
-		for ( const child of this._values ) {
-			if (child instanceof KeyV && (key == null || child.key.toLowerCase() === key)) out.push(child);
+		for (const child of this._values) {
+			if (child instanceof KeyV && (key == null || child.key.toLowerCase() === key))
+				out.push(child);
 		}
 
 		return out;
 	}
 
 	/** Retrieves the value of a pair within this set. This function throws an error when no pair is found unless a default value is defined. */
-	value<D extends undefined>( key: string, default_value?: D ): V|never;
-	value<D extends unknown>( key: string, default_value?: D ): V|D;
-	value<D extends unknown>( key: string, default_value?: D ): V|D|never {
+	value<D extends undefined>(key: string, default_value?: D): V | never;
+	value<D extends unknown>(key: string, default_value?: D): V | D;
+	value<D extends unknown>(key: string, default_value?: D): V | D | never {
 		const pair = this.pair(key, default_value === undefined ? undefined : null);
 		if (pair === null) return default_value as D;
 		return pair.value;
 	}
 
 	/** Deletes a child object if the key is matched. Returns true if a child was deleted. If fast is explicitly enabled, the keys will be reordered to make the deletion O(1). */
-	delete( kv: KeyVChild<V>, fast: boolean=false ): boolean {
+	delete(kv: KeyVChild<V>, fast: boolean = false): boolean {
 		const ind = this._values.indexOf(kv);
 		if (ind === -1) return false;
 
@@ -199,24 +218,24 @@ class KeyVSetCommon<V extends ValueType = ValueType> {
 		}
 
 		// Adapted from https://stackoverflow.com/a/54270177
-		this._values[ind] = this._values[this._values.length-1];
+		this._values[ind] = this._values[this._values.length - 1];
 		this._values.pop();
 
 		return true;
 	}
 
 	/** Adds a child to this set. If adding multiple children, use {@link insert()} instead! */
-	add( kv: KeyVChild<V> ): this {
+	add(kv: KeyVChild<V>): this {
 		kv.parent = this;
-		this._values.push( kv );
+		this._values.push(kv);
 		return this;
 	}
 
 	/** Adds multiple children to this set in a single call. If adding a single child, use {@link add()} instead! */
-	insert( kvs: KeyVChild<V>[] ): this {
+	insert(kvs: KeyVChild<V>[]): this {
 		let idx = this._values.length;
 		this._values.length += kvs.length;
-		for (let i=0; i<kvs.length; i++, idx++) {
+		for (let i = 0; i < kvs.length; i++, idx++) {
 			this._values[idx] = kvs[i];
 			kvs[i].parent = this;
 		}
@@ -228,7 +247,7 @@ class KeyVSetCommon<V extends ValueType = ValueType> {
 		return new KeyVFactory(this);
 	}
 
-	dump( options: Partial<DumpFormatOptions>=DumpFormatDefaults ): string {
+	dump(options: Partial<DumpFormatOptions> = DumpFormatDefaults): string {
 		options = Object.assign({}, DumpFormatDefaults, options);
 		const out: string[] = new Array(MAX_CONCAT_SIZE);
 		let combined = '';
@@ -238,7 +257,7 @@ class KeyVSetCommon<V extends ValueType = ValueType> {
 		// which point it will be appended to the string in one expensive operation.
 		this.__dump__(options as DumpFormatOptions, '', (value: string) => {
 			out[i] = value;
-			i = (i+1) % MAX_CONCAT_SIZE;
+			i = (i + 1) % MAX_CONCAT_SIZE;
 			if (i === 0) {
 				combined = String.prototype.concat.apply(combined, out);
 			}
@@ -251,8 +270,8 @@ class KeyVSetCommon<V extends ValueType = ValueType> {
 		return combined;
 	}
 
-	__dump__( format: DumpFormatOptions, indent: string, write: WriteFunction ): void {
-		for ( const child of this._values ) {
+	__dump__(format: DumpFormatOptions, indent: string, write: WriteFunction): void {
+		for (const child of this._values) {
 			child.__dump__(format, indent, write);
 		}
 	}
@@ -268,21 +287,15 @@ class KeyVSetCommon<V extends ValueType = ValueType> {
  * }
  */
 export class KeyVSet<V extends ValueType = ValueType> extends KeyVSetCommon<V> {
-	constructor(
-		public key: string,
-	) {
+	constructor(public key: string) {
 		super();
 	}
 
 	__dump__(format: DumpFormatOptions, indent: string, write: WriteFunction): void {
-		write(
-			indent
-			+ escape(this.key, format, false)
-			+ '\n' + indent + '{\n'
-		);
+		write(indent + escape(this.key, format, false) + '\n' + indent + '{\n');
 
 		super.__dump__(format, indent + format.indent, write);
-		write( indent + '}\n' );
+		write(indent + '}\n');
 	}
 }
 
@@ -301,22 +314,22 @@ export class KeyV<V extends ValueType = ValueType> {
 		public key: string,
 		public value: V,
 		public query: string | null = null,
-		public parent: KeyVSetCommon | null = null
-	) { }
+		public parent: KeyVSetCommon | null = null,
+	) {}
 
 	__dump__(format: DumpFormatOptions, indent: string, write: WriteFunction): void {
 		write(
-			indent
-			+ escape(this.key, format, false)
-			+ ' '
-			+ escape(this.value, format, true)
-			+ ( this.query === null ? '\n' : ' [' + this.query + ']\n' )
+			indent +
+				escape(this.key, format, false) +
+				' ' +
+				escape(this.value, format, true) +
+				(this.query === null ? '\n' : ' [' + this.query + ']\n'),
 		);
 	}
 
-	float(): number|never;
-	float<T>(default_value: T): number|T;
-	float<T>(default_value?: T): number|T|never {
+	float(): number | never;
+	float<T>(default_value: T): number | T;
+	float<T>(default_value?: T): number | T | never {
 		const v = parseFloat(this.value as string);
 		if (isNaN(v)) {
 			if (default_value !== undefined) return default_value;
@@ -325,9 +338,9 @@ export class KeyV<V extends ValueType = ValueType> {
 		return v;
 	}
 
-	int(): number|never;
-	int<T>(default_value: T): number|T;
-	int<T>(default_value?: T): number|T|never {
+	int(): number | never;
+	int<T>(default_value: T): number | T;
+	int<T>(default_value?: T): number | T | never {
 		const v = parseInt(this.value as string);
 		if (isNaN(v)) {
 			if (default_value !== undefined) return default_value;
@@ -341,21 +354,33 @@ export class KeyV<V extends ValueType = ValueType> {
 	}
 
 	bool(): boolean {
-		return !(!this.value || this.value === 'off' || this.value === 'false' || this.value === '0');
+		return !(
+			!this.value ||
+			this.value === 'off' ||
+			this.value === 'false' ||
+			this.value === '0'
+		);
 	}
 
-	vector(): ArrayLike<number>|never;
-	vector<T>(default_value: T, bracket_L?: string, bracket_R?: string): ArrayLike<number>|T;
-	vector<T>(default_value?: T, bracket_L: string='[', bracket_R: string=']'): ArrayLike<number>|T|never {
+	vector(): ArrayLike<number> | never;
+	vector<T>(default_value: T, bracket_L?: string, bracket_R?: string): ArrayLike<number> | T;
+	vector<T>(
+		default_value?: T,
+		bracket_L: string = '[',
+		bracket_R: string = ']',
+	): ArrayLike<number> | T | never {
 		// This label allows us to use 'break attempt' as a pseudo-return for fail cases
 		attempt: if (typeof this.value === 'string') {
 			if (!this.value.startsWith(bracket_L) || !this.value.endsWith(bracket_R)) break attempt;
 
-			const split = this.value.slice(bracket_L.length, (-bracket_R.length || undefined)).trim().split(' ');
+			const split = this.value
+				.slice(bracket_L.length, -bracket_R.length || undefined)
+				.trim()
+				.split(' ');
 			const vec = new Float64Array(split.length);
 
-			for (let i=0; i<vec.length; i++) {
-				const element = vec[i] = parseFloat(split[i]);
+			for (let i = 0; i < vec.length; i++) {
+				const element = (vec[i] = parseFloat(split[i]));
 				if (isNaN(element)) break attempt;
 			}
 
@@ -367,7 +392,6 @@ export class KeyV<V extends ValueType = ValueType> {
 	}
 }
 
-
 /** A class for KeyVSetCommon quick tree creation. */
 class KeyVFactory {
 	origin: KeyVSetCommon;
@@ -378,7 +402,7 @@ class KeyVFactory {
 	}
 
 	/** Creates to a new directory and moves into it. */
-	dir( key: string ): this {
+	dir(key: string): this {
 		const dir = new KeyVSet(key);
 		this.source.add(dir);
 		this.source = dir;
@@ -386,17 +410,18 @@ class KeyVFactory {
 	}
 
 	/** Creates a new pair. */
-	pair( key: string, value: ValueType, query: string|null=null ): this {
+	pair(key: string, value: ValueType, query: string | null = null): this {
 		this.source.add(new KeyV(key, value, query));
 		return this;
 	}
 
 	/** Goes back the specified number of levels. */
-	back( levels: number=1 ): this {
-		for ( let i=0; i<levels; i++ ) {
-			if (this.source.parent === null) throw new Error('Attempted to navigate backwards past root set!');
+	back(levels: number = 1): this {
+		for (let i = 0; i < levels; i++) {
+			if (this.source.parent === null)
+				throw new Error('Attempted to navigate backwards past root set!');
 			this.source = this.source.parent;
-		};
+		}
 		return this;
 	}
 

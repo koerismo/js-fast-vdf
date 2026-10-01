@@ -1,13 +1,18 @@
+/**
+ * The core tokenizer/parser module.
+ * @module
+ */
+
 import { ParseError, type ValueType } from './types.js';
 
 /** Configuration options for the core tokenizer/parser. */
 export interface CoreParseOptions {
-	on_key:		(key:string, value:ValueType, query?:string) => void;
-	on_enter:	(key:string) => void;
-	on_exit:	() => void;
-	escapes:	boolean;
-	multilines:	boolean;
-	types:      boolean;
+	on_key: (key: string, value: ValueType, query?: string) => void;
+	on_enter: (key: string) => void;
+	on_exit: () => void;
+	escapes: boolean;
+	multilines: boolean;
+	types: boolean;
 }
 
 /** Control characters for tokenization. */
@@ -28,7 +33,7 @@ export const enum Char {
 }
 
 /** Converts a string into other primitives when possible, otherwise returning the original string. */
-function parse_value( value: string ): string|number|boolean {
+function parse_value(value: string): string | number | boolean {
 	if (value === 'true') return true;
 	if (value === 'false') return false;
 	const num = +value;
@@ -37,42 +42,40 @@ function parse_value( value: string ): string|number|boolean {
 }
 
 /** Returns whether the given charcode is a whitespace character. (A space, tab, carriage-return, or newline) */
-function is_space( code: number ) {
-	return (
-		code === Char[' '] ||
-		code === Char['\t'] ||
-		code === Char['\r'] ||
-		code === Char['\n']
-	);
+function is_space(code: number) {
+	return code === Char[' '] || code === Char['\t'] || code === Char['\r'] || code === Char['\n'];
 }
 
 /** Parses the given string and calls the provided callbacks as they are processed. */
-export function parse( text: string, options: CoreParseOptions ): void {
-	const escapes		= options.escapes;
-	const length		= text.length;
+export function parse(text: string, options: CoreParseOptions): void {
+	const escapes = options.escapes;
+	const length = text.length;
 
-	let key: string|null = null;
-	let value: ValueType|null = null;
+	let key: string | null = null;
+	let value: ValueType | null = null;
 
-	for ( let i=0; i<length; i++ ) {
+	for (let i = 0; i < length; i++) {
 		const c = text.charCodeAt(i);
 
 		// Spacing ( tab, space, \n, \r )
-		if ( is_space(c) ) continue;
+		if (is_space(c)) continue;
 
 		// Start bracket
-		if ( c === Char['{'] ) {
-			if ( key === null ) throw new ParseError( `Attempted to enter block without key at ${i}!` );
-			options.on_enter( key );
+		if (c === Char['{']) {
+			if (key === null) throw new ParseError(`Attempted to enter block without key at ${i}!`);
+			options.on_enter(key);
 			key = null;
 			continue;
 		}
 
 		// End bracket
-		if ( c === Char['}'] ) {
-			if ( key !== null ) {
-				if ( value === null ) throw new ParseError( `Encountered unpaired key "${key}" before ending bracket at ${i}!` );
-				else options.on_key( key, value );
+		if (c === Char['}']) {
+			if (key !== null) {
+				if (value === null)
+					throw new ParseError(
+						`Encountered unpaired key "${key}" before ending bracket at ${i}!`,
+					);
+				else options.on_key(key, value);
 			}
 			key = value = null;
 			options.on_exit();
@@ -80,56 +83,65 @@ export function parse( text: string, options: CoreParseOptions ): void {
 		}
 
 		// Quoted string
-		if ( c === Char['"'] ) {
-			const start = i+1;
+		if (c === Char['"']) {
+			const start = i + 1;
 
 			if (escapes) {
 				let n: number;
 				while (i < length) {
 					// Find next quote
-					i = text.indexOf('"', i+1);
-					if (i === -1) throw new ParseError( `Encountered unterminated quote starting at ${start-1}!` );
+					i = text.indexOf('"', i + 1);
+					if (i === -1)
+						throw new ParseError(
+							`Encountered unterminated quote starting at ${start - 1}!`,
+						);
 					if (text.charCodeAt(i - 1) !== Char['\\']) break;
 					n = 2;
 					while (text.charCodeAt(i - n) === Char['\\']) n++;
 					if (n & 1) break;
 				}
-			}
-			else {
-				i = text.indexOf('"', i+1);
-				if (i === -1) throw new ParseError( `Encountered unterminated quote starting at ${start-1}!` );
+			} else {
+				i = text.indexOf('"', i + 1);
+				if (i === -1)
+					throw new ParseError(
+						`Encountered unterminated quote starting at ${start - 1}!`,
+					);
 			}
 
 			const chunk = text.slice(start, i);
-			if ( key === null )			key = chunk;
-			else if ( value === null )	value = chunk;
+			if (key === null) key = chunk;
+			else if (value === null) value = chunk;
 			else {
-				options.on_key( key, value );
-				value = null, key = chunk;
+				options.on_key(key, value);
+				value = null;
+				key = chunk;
 			}
 
 			continue;
 		}
 
 		// Single-line comment ( // )
-		if ( c  === Char['/'] ) {
-			const c2 = text.charCodeAt(i+1);
+		if (c === Char['/']) {
+			const c2 = text.charCodeAt(i + 1);
 
-			if ( c2  === Char['/'] ) {
-				i = text.indexOf('\n', i+1);
-				if ( i === -1 ) break;
+			if (c2 === Char['/']) {
+				i = text.indexOf('\n', i + 1);
+				if (i === -1) break;
 				continue;
 			}
 
-			if ( options.multilines && c2 === Char['*'] ) {
+			if (options.multilines && c2 === Char['*']) {
 				const start = i;
 				while (true) {
-					i = text.indexOf('*', i+1);
-					if ( i === -1 ) throw new ParseError( `Encountered unterminated multiline comment starting at ${start}!` );
-					if ( text.charCodeAt(i+1) === Char['/'] ) break;
+					i = text.indexOf('*', i + 1);
+					if (i === -1)
+						throw new ParseError(
+							`Encountered unterminated multiline comment starting at ${start}!`,
+						);
+					if (text.charCodeAt(i + 1) === Char['/']) break;
 				}
 
-				i ++;
+				i++;
 				continue;
 			}
 		}
@@ -142,20 +154,22 @@ export function parse( text: string, options: CoreParseOptions ): void {
 			while (i < length) {
 				i++;
 				const c = text.charCodeAt(i);
-				if ( escapes && c === Char['\\'] ) { i++; continue; }
-				if ( is_space(c) ) break;
+				if (escapes && c === Char['\\']) {
+					i++;
+					continue;
+				}
+				if (is_space(c)) break;
 			}
 
 			const chunk = text.slice(start, i);
-			if ( key === null )			key = chunk;
-			else if ( value === null )	value = options.types ? parse_value(chunk) : chunk;
+			if (key === null) key = chunk;
+			else if (value === null) value = options.types ? parse_value(chunk) : chunk;
 			else {
-				if ( text.charCodeAt(start) === Char['['] && text.charCodeAt(i-1) === Char[']'] ) {
-					options.on_key( key, value, text.slice(start+1, i-1) );
+				if (text.charCodeAt(start) === Char['['] && text.charCodeAt(i - 1) === Char[']']) {
+					options.on_key(key, value, text.slice(start + 1, i - 1));
 					key = null;
-				}
-				else {
-					options.on_key( key, value );
+				} else {
+					options.on_key(key, value);
 					key = chunk;
 				}
 				value = null;
@@ -163,7 +177,8 @@ export function parse( text: string, options: CoreParseOptions ): void {
 		}
 	}
 
-	if ( key !== null && value === null ) throw new ParseError( `Encountered unpaired key "${key}" at EOF!` );
-	else if ( value !== null ) options.on_key( key as string, value );
+	if (key !== null && value === null)
+		throw new ParseError(`Encountered unpaired key "${key}" at EOF!`);
+	else if (value !== null) options.on_key(key as string, value);
 	return;
 }

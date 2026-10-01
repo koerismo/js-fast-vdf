@@ -1,3 +1,8 @@
+/**
+ * Contains methods for parsing data into JavaScript structures using the core tokenizer/parser.
+ * @module
+ */
+
 import { Char, parse as cparse } from './core.js';
 import { KeyV, KeyVRoot, KeyVSet, ParseError, ValueType, unescape } from './types.js';
 
@@ -23,9 +28,13 @@ export interface JsonSet<T = ValueType> {
 /** Sets `target[key]`, except that `__proto__` becomes an own key (as with JSON.parse) rather than replacing the prototype of `target`. */
 function assign(target: JsonSet, key: string, value: JsonSet | ValueType) {
 	if (key === '__proto__') {
-		Object.defineProperty(target, key, { value, writable: true, enumerable: true, configurable: true });
-	}
-	else {
+		Object.defineProperty(target, key, {
+			value,
+			writable: true,
+			enumerable: true,
+			configurable: true,
+		});
+	} else {
 		target[key] = value;
 	}
 }
@@ -34,9 +43,12 @@ function assign(target: JsonSet, key: string, value: JsonSet | ValueType) {
  * @param text The text to parse.
  * @param options Tokenization settings to pass to the core parser.
  */
-export function parse( text: string ): KeyVRoot<string>;
-export function parse<T extends SharedParseOptions>( text: string, options: T ): T['types'] extends true ? KeyVRoot : KeyVRoot<string>;
-export function parse( text: string, options?: SharedParseOptions ): KeyVRoot {
+export function parse(text: string): KeyVRoot<string>;
+export function parse<T extends SharedParseOptions>(
+	text: string,
+	options: T,
+): T['types'] extends true ? KeyVRoot : KeyVRoot<string>;
+export function parse(text: string, options?: SharedParseOptions): KeyVRoot {
 	let out: KeyVSet | KeyVRoot = new KeyVRoot();
 	const macros = options?.on_macro != undefined;
 	const queries = options?.on_query != undefined;
@@ -44,17 +56,16 @@ export function parse( text: string, options?: SharedParseOptions ): KeyVRoot {
 	const multilines = options?.multilines ?? false;
 	const types = options?.types ?? false;
 
-	cparse( text, {
+	cparse(text, {
 		on_enter(key) {
-			out.add(out = new KeyVSet( key ));
+			out.add((out = new KeyVSet(key)));
 		},
 		on_exit() {
-			if ( !out.parent ) throw new ParseError( 'Attempted to exit past root keyvalue!' );
+			if (!out.parent) throw new ParseError('Attempted to exit past root keyvalue!');
 			out = out.parent;
 		},
 		on_key(key, value, query) {
-			if (query && queries && !options!.on_query!(query))
-				return;
+			if (query && queries && !options!.on_query!(query)) return;
 			if (escapes) {
 				key = unescape(key);
 				value = unescape(value);
@@ -63,11 +74,11 @@ export function parse( text: string, options?: SharedParseOptions ): KeyVRoot {
 				options.on_macro!(key, value, out);
 				return;
 			}
-			out.add(new KeyV( key, value, query ));
+			out.add(new KeyV(key, value, query));
 		},
 		escapes,
 		multilines,
-		types
+		types,
 	});
 
 	return out;
@@ -76,10 +87,13 @@ export function parse( text: string, options?: SharedParseOptions ): KeyVRoot {
 /** Parses data into a regular javascript object.
  * @param text The text to parse.
  * @param options Tokenization settings to pass to the core parser.
-*/
-export function json( text: string ): JsonSet<string>;
-export function json<T extends SharedParseOptions>( text: string, options: T ): T['types'] extends true ? JsonSet : JsonSet<string>;
-export function json( text: string, options?: SharedParseOptions<JsonSet> ): JsonSet {
+ */
+export function json(text: string): JsonSet<string>;
+export function json<T extends SharedParseOptions>(
+	text: string,
+	options: T,
+): T['types'] extends true ? JsonSet : JsonSet<string>;
+export function json(text: string, options?: SharedParseOptions<JsonSet>): JsonSet {
 	let out: JsonSet = {};
 	// Parents are tracked outside the objects, since deleting a tracking key leaves every returned object in slow dictionary mode
 	const parents: JsonSet[] = [];
@@ -87,7 +101,7 @@ export function json( text: string, options?: SharedParseOptions<JsonSet> ): Jso
 	const macros = options?.on_macro != undefined;
 	const queries = options?.on_query != undefined;
 
-	cparse( text, {
+	cparse(text, {
 		on_enter(key) {
 			const child: JsonSet = {};
 			assign(out, key, child);
@@ -96,12 +110,11 @@ export function json( text: string, options?: SharedParseOptions<JsonSet> ): Jso
 		},
 		on_exit() {
 			const parent = parents.pop();
-			if (!parent) throw new ParseError( 'Attempted to exit past root keyvalue!' );
+			if (!parent) throw new ParseError('Attempted to exit past root keyvalue!');
 			out = parent;
 		},
 		on_key(key, value, query) {
-			if (query && queries && !options!.on_query!(query))
-				return;
+			if (query && queries && !options!.on_query!(query)) return;
 			if (escapes) {
 				key = unescape(key);
 				value = unescape(value);

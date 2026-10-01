@@ -1,10 +1,10 @@
 # Changelog
 
-## [Unreleased]
-### Fixed
+## [3.1.2]
+### Changed
 - `json()` no longer lets a `__proto__` key replace the prototype of the object it appears in. Like `JSON.parse`, it is now kept as an ordinary own property.
 
-### Changed
+### Fixed
 - Objects returned by `json()` no longer end up in V8's slow dictionary mode, which makes both parsing and reading the result faster.
 
 ## [3.1.0]
