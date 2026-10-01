@@ -20,13 +20,15 @@ export interface JsonSet<T = ValueType> {
 	[key: string]: JsonSet<T> | T;
 }
 
-interface JsonSetInternal {
-	[PARENT]?: JsonSet;
-	[key: string]: JsonSetInternal | ValueType;
+/** Sets `target[key]`, except that `__proto__` becomes an own key (as with JSON.parse) rather than replacing the prototype of `target`. */
+function assign(target: JsonSet, key: string, value: JsonSet | ValueType) {
+	if (key === '__proto__') {
+		Object.defineProperty(target, key, { value, writable: true, enumerable: true, configurable: true });
+	}
+	else {
+		target[key] = value;
+	}
 }
-
-// Used to track parent nodes in JSON output
-const PARENT = Symbol('parent');
 
 /** Parses data into a tree of objects.
  * @param text The text to parse.
@@ -78,20 +80,24 @@ export function parse( text: string, options?: SharedParseOptions ): KeyVRoot {
 export function json( text: string ): JsonSet<string>;
 export function json<T extends SharedParseOptions>( text: string, options: T ): T['types'] extends true ? JsonSet : JsonSet<string>;
 export function json( text: string, options?: SharedParseOptions<JsonSet> ): JsonSet {
-	let out: JsonSetInternal = {};
+	let out: JsonSet = {};
+	// Parents are tracked outside the objects, since deleting a tracking key leaves every returned object in slow dictionary mode
+	const parents: JsonSet[] = [];
 	const escapes = options?.escapes ?? true;
 	const macros = options?.on_macro != undefined;
 	const queries = options?.on_query != undefined;
 
 	cparse( text, {
 		on_enter(key) {
-			out = out[key] = { [PARENT]: out };
+			const child: JsonSet = {};
+			assign(out, key, child);
+			parents.push(out);
+			out = child;
 		},
 		on_exit() {
-			const ref = out;
-			if (!out[PARENT]) throw new ParseError( 'Attempted to exit past root keyvalue!' );
-			out = out[PARENT];
-			delete ref[PARENT];
+			const parent = parents.pop();
+			if (!parent) throw new ParseError( 'Attempted to exit past root keyvalue!' );
+			out = parent;
 		},
 		on_key(key, value, query) {
 			if (query && queries && !options!.on_query!(query))
@@ -104,13 +110,12 @@ export function json( text: string, options?: SharedParseOptions<JsonSet> ): Jso
 				options.on_macro!(key, value, out);
 				return;
 			}
-			out[key] = value;
+			assign(out, key, value);
 		},
 		escapes,
 		multilines: options?.multilines ?? true,
 		types: options?.types ?? true,
 	});
 
-	delete out[PARENT];
 	return out;
 }

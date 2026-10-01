@@ -120,6 +120,37 @@ describe('Parser', () => {
 		);
 	});
 
+	it('Keeps __proto__ keys as own properties in JSON output', () => {
+		const out = json(`
+			"__proto__" { "polluted" "yes" }
+			"root" {
+				"__proto__" "value"
+				"child" { "__proto__" { "nested" "yes" } }
+			}`);
+
+		assert.strictEqual(Object.getPrototypeOf(out), Object.prototype);
+		assert.strictEqual(out.polluted, undefined);
+		assert.deepStrictEqual(Object.keys(out), ['__proto__', 'root']);
+		assert.deepStrictEqual(Object.getOwnPropertyDescriptor(out, '__proto__')?.value, { polluted: 'yes' });
+
+		const root = out.root as JsonSet;
+		assert.strictEqual(Object.getOwnPropertyDescriptor(root, '__proto__')?.value, 'value');
+
+		const child = root.child as JsonSet;
+		assert.strictEqual(Object.getPrototypeOf(child), Object.prototype);
+		assert.strictEqual(child.nested, undefined);
+		assert.deepStrictEqual(Object.getOwnPropertyDescriptor(child, '__proto__')?.value, { nested: 'yes' });
+
+		assert.strictEqual(({} as JsonSet).polluted, undefined);
+	});
+
+	it('Matches JSON.parse for __proto__ keys', () => {
+		assert.deepStrictEqual(
+			json(`"a" { "__proto__" { "b" "c" } "d" "e" }`),
+			JSON.parse('{ "a": { "__proto__": { "b": "c" }, "d": "e" } }')
+		);
+	});
+
 	it('Uses #macro handler', () => {
 		const macro_test = `
 			"abc" "def"
